@@ -1,0 +1,1606 @@
+<!doctype html>
+<html lang="en" data-theme="morning">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fluent Reader</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Ctext x='32' y='46' font-size='40' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='white'%3EF%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230f766e'/%3E%3Ctext x='32' y='46' font-size='40' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='white'%3EF%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f5f4f0;--card:#ffffff;--ink:#1b2430;--muted:#657084;--line:#e4e2dc;
+  --accent:#0f766e;--accent-ink:#ffffff;--accent-soft:#e0f2ef;--hl:#fde68a;
+  --ok:#15803d;--bad:#dc2626;--warn:#b45309;--warn-soft:#fef3c7;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.05);--fs:26px;
+  --rf:Georgia,"Times New Roman",serif;
+}
+html[data-theme="night"]{
+  --bg:#0d1117;--card:#161c24;--ink:#e6eaf0;--muted:#97a2b2;--line:#252e3a;
+  --accent:#2dd4bf;--accent-ink:#04201c;--accent-soft:#12302d;--hl:#6b5413;
+  --ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--warn-soft:#3a2f10;--shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+.wrap{max-width:960px;margin:0 auto;padding:18px 16px 90px}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-family:Georgia,serif;font-size:20px}
+h1{font-size:18px;margin:0;font-weight:650;letter-spacing:-.01em}
+.sub{font-size:12.5px;color:var(--muted)}
+.hd-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);color:var(--muted);font:inherit;font-size:12.5px;padding:6px 12px;border-radius:20px;cursor:pointer}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pill.ok .dot{background:var(--ok)}.pill.off .dot{background:var(--bad)}.pill.sync .dot{background:var(--warn);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+nav{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:16px;overflow-x:auto}
+nav button{border:0;background:transparent;color:var(--muted);padding:8px 15px;border-radius:9px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.view{display:none}.view.on{display:block}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;padding:6px 12px;border-radius:7px;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px;padding:9px 16px;border-radius:10px;cursor:pointer;transition:.12s}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.rec{background:var(--bad);border-color:var(--bad);color:#fff;font-weight:600}
+.btn.small{padding:5px 11px;font-size:13px;border-radius:8px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.sec{padding:18px}
+h2{font-size:16px;margin:0 0 4px}h3{font-size:15px;margin:0}h4{font-size:12px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.meta{font-size:13px;color:var(--muted)}.meta b{color:var(--ink)}
+.empty{color:var(--muted);font-size:14px;padding:12px 0}
+/* plan */
+.plan{padding:16px 18px;margin-bottom:14px}
+.plan-top{display:flex;gap:12px;flex-wrap:wrap;align-items:stretch}
+.pstat{flex:1;min-width:130px;background:var(--bg);border-radius:12px;padding:10px 14px}
+.pstat b{display:block;font-size:20px;letter-spacing:-.02em}.pstat span{font-size:12px;color:var(--muted)}
+.gbar{height:6px;background:var(--line);border-radius:4px;margin-top:6px;overflow:hidden}.gbar i{display:block;height:100%;background:var(--accent);width:0}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+/* reader card */
+.rhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line)}
+.rtitle{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:2px 9px;border-radius:20px}
+.tag.gold{color:var(--warn);background:var(--warn-soft)}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sw{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.sw input{appearance:none;width:34px;height:20px;border-radius:12px;background:var(--line);position:relative;cursor:pointer;transition:.15s;margin:0}
+.sw input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.sw input:checked{background:var(--accent)}.sw input:checked::after{left:16px}
+.steps{display:flex;gap:6px;padding:12px 16px 0;overflow-x:auto}
+.steps button{flex:1;min-width:84px;border:1px solid var(--line);background:var(--bg);color:var(--muted);font:inherit;font-size:13px;padding:8px 6px;border-radius:10px;cursor:pointer}
+.steps button b{display:block;font-size:11px;font-weight:600;opacity:.7}
+.steps button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.steps button.done{color:var(--accent);border-color:var(--accent)}
+.steptip{padding:10px 16px 12px;font-size:13.5px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.brief{display:none;padding:16px;border-bottom:1px solid var(--line);background:linear-gradient(var(--accent-soft),transparent 160px)}
+.brief.on{display:block}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.bsec p{margin:0;font-size:14.5px}.bsec ol,.bsec ul{margin:0;padding-left:20px;font-size:14px}.bsec li{margin:3px 0}
+.vchip{display:inline-flex;flex-direction:column;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 10px;margin:0 6px 6px 0;cursor:pointer;font-size:12.5px;color:var(--muted)}
+.vchip b{font-family:var(--rf);font-size:16px;color:var(--ink)}.vchip:hover{border-color:var(--accent)}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:5px 0;cursor:pointer}
+.chk input{margin-top:4px;accent-color:var(--accent)}
+.chk input:checked+span{text-decoration:line-through;opacity:.55}
+.cue{margin-top:10px;font-size:14px;background:var(--card);border-left:3px solid var(--accent);padding:8px 12px;border-radius:0 8px 8px 0}
+.controls{padding:14px 16px;display:none;gap:14px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.controls.on{display:flex}
+.panel{display:none}.panel.on{display:contents}
+.ctl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.ctl output{color:var(--ink);font-weight:600;min-width:44px;display:inline-block}
+input[type=range]{accent-color:var(--accent);width:140px}
+select,input[type=number]{font:inherit;font-size:13.5px;padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);max-width:220px}
+.bar{height:3px;background:var(--line)}.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.reader{padding:26px 28px 30px;font-family:var(--rf);font-size:var(--fs);line-height:1.95;min-height:260px}
+.reader.sans{font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.8}
+.reader p{margin:0 0 1.1em}
+.w{padding:2px 1px;border-radius:5px;cursor:pointer;transition:background .15s,opacity .2s}
+.w:hover{background:var(--accent-soft)}
+.w.active{background:var(--hl)}.w.done{opacity:.45}
+.w.speaking{background:var(--accent-soft);box-shadow:inset 0 -2px 0 var(--accent)}
+body.marks .w.st{font-weight:700;color:var(--accent)}
+.w.ok,body.marks .w.st.ok{color:var(--ok)}
+.w.miss,body.marks .w.st.miss{color:var(--bad);text-decoration:underline wavy;text-underline-offset:5px}
+.w.saved{border-bottom:2px dotted var(--accent)}
+.pm{display:none;color:var(--muted);font-family:-apple-system,Arial,sans-serif;font-size:.55em;margin:0 .25em;vertical-align:.25em;font-weight:600}
+body.marks .pm{display:inline}.pm.au{opacity:.4}
+.legend{font-size:12.5px;color:var(--muted);padding:0 16px 14px;display:flex;gap:16px;flex-wrap:wrap}
+.hint{font-size:13px;color:var(--muted);padding:0 16px 14px}
+.live{width:100%;font-size:13.5px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 12px;min-height:40px;max-height:90px;overflow:auto}
+.timer{font-variant-numeric:tabular-nums;font-weight:600;font-size:15px;min-width:48px}
+.warn{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13px;width:100%}
+/* results + coach */
+.results{margin-top:14px;padding:18px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--bg);border-radius:12px;padding:12px 14px}.stat b{display:block;font-size:24px;letter-spacing:-.02em}.stat span{font-size:12.5px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:5px 12px;font-size:14px;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--accent)}
+.note{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.note:last-child{border:0}
+.note i{flex:0 0 28px;height:28px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:13px}
+.note.warn i{background:var(--warn-soft);color:var(--warn)}.note.good i{background:var(--accent-soft)}
+.note b{display:block;font-size:14.5px}.note p{margin:2px 0 0;font-size:14px;color:var(--muted)}
+/* library / grids */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.lib{padding:16px;cursor:pointer;transition:.12s;position:relative}
+.lib:hover{border-color:var(--accent);transform:translateY(-1px)}
+.lib h3{margin:8px 0 4px}.lib p{margin:0;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lib .ft{display:flex;justify-content:space-between;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+textarea,input[type=text],input[type=password],input[type=url]{width:100%;font:inherit;font-size:15px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+textarea{min-height:150px;resize:vertical;font-family:var(--rf);font-size:17px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+.fld{margin-bottom:14px}.fld label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+/* twisters */
+.tw{padding:16px;margin-bottom:12px}
+.tw .tx{font-family:var(--rf);font-size:22px;line-height:1.55;margin:6px 0 12px}
+.tw .res{font-size:13.5px;margin-top:10px;color:var(--muted)}
+.reps{display:inline-flex;gap:5px;margin-left:6px}.reps i{width:10px;height:10px;border-radius:50%;border:2px solid var(--line);display:inline-block}.reps i.f{background:var(--accent);border-color:var(--accent)}
+.pop{position:fixed;z-index:20;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 32px rgba(0,0,0,.22);padding:14px;width:min(310px,calc(100vw - 24px));display:none}
+.pop.on{display:block}.pop .wd{font-family:Georgia,serif;font-size:21px;font-weight:700}.pop .def{font-size:13.5px;margin-top:10px;color:var(--muted)}
+.rv{text-align:center;padding:26px 10px}.rv .big{font-family:Georgia,serif;font-size:44px;font-weight:700;margin:6px 0 14px}
+.chart{width:100%;height:auto}
+.legend2{display:flex;gap:14px;font-size:12.5px;color:var(--muted);margin:4px 0 12px}.legend2 i{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.hbar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13.5px}.hbar span{flex:0 0 150px}.hbar div{flex:1;height:10px;background:var(--bg);border-radius:6px;overflow:hidden}.hbar div i{display:block;height:100%;background:var(--accent)}.hbar em{font-style:normal;color:var(--muted);width:28px;text-align:right}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line)}th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:30;max-width:90vw}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.tw .tx .w{cursor:default}.tw .tx .w:hover{background:none}
+.tm-big{font-size:72px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;text-align:center;margin:8px 0 14px;font-family:var(--rf);line-height:1.1}
+.tmcard{text-align:center}.tmcard .acts,.tmcard .filters{justify-content:center}
+.tmcard .bar{border-radius:3px;margin:0 auto 14px;max-width:420px;overflow:hidden}
+.tmrow{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:12px}
+.tmrow input{width:140px}
+.dbars{display:flex;align-items:flex-end;gap:4px;height:170px;position:relative;padding-top:18px;margin-top:10px}
+.dbar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+.dbar i{display:block;width:100%;max-width:34px;background:var(--accent);border-radius:5px 5px 0 0}
+.dbar i.zero{background:var(--line)}.dbar i.hit{background:var(--ok)}
+.dbar em{font-style:normal;font-size:10.5px;color:var(--muted);height:16px;line-height:16px}
+.dbar span{font-size:11px;color:var(--muted);height:18px;line-height:18px;white-space:nowrap}
+.dgoal{position:absolute;left:0;right:0;border-top:1.5px dashed var(--warn);pointer-events:none}
+.vw b{display:block;font-size:14.5px}.vw.on{background:var(--accent-soft);border-radius:10px;padding-left:10px;padding-right:10px}.vw.done{opacity:.5}
+@media (max-width:620px){.tm-big{font-size:56px}.reader{padding:18px 16px 22px;--fs:22px}input[type=range]{width:110px}.hbar span{flex-basis:110px}}
+</style>
+</head>
+<body class="marks">
+<div class="wrap">
+  <div class="hd">
+    <div class="brand"><div class="logo">F</div><div><h1>Fluent Reader</h1><div class="sub">Read English smoothly, clearly and professionally.</div></div></div>
+    <div class="hd-r">
+      <button class="pill" id="syncPill" title="Cloud sync"><i class="dot"></i><span id="syncTxt">Local only</span></button>
+      <button class="pill" id="timerPill" style="display:none" title="Practice timer"><span>⏱</span><span id="timerPillTxt">0:00</span></button>
+      <button class="pill" id="themeBtn" title="Switch theme"><span id="themeIco">☾</span><span id="themeTxt">Night</span></button>
+    </div>
+  </div>
+  <nav id="nav">
+    <button data-view="practice" class="on">Practice</button><button data-view="library">Library</button><button data-view="warm">Warm-up</button><button data-view="words">Words</button><button data-view="time">Timer</button><button data-view="progress">Progress</button><button data-view="settings">Settings</button>
+  </nav>
+
+  <!-- PRACTICE -->
+  <section class="view on" id="v-practice">
+    <div class="card plan" id="plan"></div>
+    <div class="card">
+      <div class="rhead">
+        <div class="rtitle"><h3 id="rTitle"></h3><span class="tag" id="rLevel"></span><span class="tag gold" id="rMaster" style="display:none">✓ Mastered</span></div>
+        <div class="tools">
+          <button class="btn small" id="briefBtn">Briefing</button>
+          <label class="sw"><input type="checkbox" id="marksSw" checked> Delivery marks</label>
+          <button class="btn small" id="fontBtn" title="Serif / Sans">Aa</button>
+          <button class="btn small" id="fMinus">A−</button><button class="btn small" id="fPlus">A+</button>
+        </div>
+      </div>
+      <div class="steps" id="steps"></div>
+      <div class="steptip"><span id="stepTip"></span><button class="btn small primary" id="nextStep">Next →</button></div>
+      <div class="brief on" id="brief"></div>
+      <div class="controls" id="controls">
+        <div class="panel" id="p-pace">
+          <button class="btn primary" id="paceBtn">▶ Start</button>
+          <button class="btn" id="paceReset">Restart</button>
+          <label class="ctl">Speed <input type="range" id="wpm" min="80" max="260" step="5" value="130"><output id="wpmO">130 WPM</output></label>
+          <label class="ctl">Chunk <select id="chunkSel"><option value="3">3 words</option><option value="4" selected>4 words</option><option value="5">5 words</option></select></label>
+          <label class="sw"><input type="checkbox" id="pauseSw" checked> Breath pauses</label>
+          <label class="sw"><input type="checkbox" id="rampSw"> Auto-ramp +5</label>
+        </div>
+        <div class="panel" id="p-listen">
+          <button class="btn primary" id="listenBtn">▶ Listen</button>
+          <label class="ctl">Voice <select id="voiceSel"></select></label>
+          <label class="ctl">Speed <input type="range" id="rate" min="0.6" max="1.2" step="0.05" value="0.9"><output id="rateO">0.90×</output></label>
+          <label class="sw"><input type="checkbox" id="shadowSw"> Listen &amp; repeat</label>
+        </div>
+        <div class="panel" id="p-record">
+          <button class="btn primary" id="recBtn">● Start reading</button>
+          <span class="timer" id="timer">0:00</span>
+          <div class="live" id="live">Press start, then read out loud at your natural pace. Don't stop for hard words — keep going.</div>
+          <div class="warn" id="srWarn" style="display:none">Speech recognition isn't available in this browser — use Chrome or Edge for scoring. You can still time yourself.</div>
+        </div>
+      </div>
+      <div class="bar"><i id="barFill"></i></div>
+      <div class="reader" id="reader"></div>
+      <div class="legend"><span><b>/</b> short pause — breathe</span><span><b>//</b> long pause — full stop, drop your voice</span><span style="color:var(--accent);font-weight:700">bold = stress this word</span></div>
+      <div class="hint" id="modeHint"></div>
+    </div>
+    <div class="meta" id="meta" style="margin:10px 4px 0"></div>
+    <div class="card results" id="results" style="display:none"></div>
+    <div class="card results" id="coach" style="display:none"></div>
+  </section>
+
+  <!-- LIBRARY -->
+  <section class="view" id="v-library">
+    <div class="filters" id="libFilters"></div>
+    <div class="grid" id="libGrid"></div>
+    <div class="card sec" style="margin-top:16px">
+      <h2>Your own text</h2>
+      <div class="meta" style="margin-bottom:10px">Paste an email, article or script. Tip: you can add <b>/</b> and <b>//</b> for pauses and *stars* around words to stress.</div>
+      <input type="text" id="ownTitle" placeholder="Title (optional)" style="margin-bottom:10px">
+      <textarea id="ownText" placeholder="Paste your English text here…"></textarea>
+      <div style="margin-top:12px"><button class="btn primary" id="ownGo">Practice this text</button></div>
+    </div>
+  </section>
+
+  <!-- WARM-UP -->
+  <section class="view" id="v-warm">
+    <div class="card sec" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><h2>Voice warm-up · about 2 minutes</h2><div class="meta">Wake up your breath, lips, tongue and jaw before you read. The guided routine counts each step for you.</div></div>
+        <button class="btn primary" id="vwBtn">▶ Start guided routine</button>
+      </div>
+      <div id="vwList" style="margin-top:10px"></div>
+    </div>
+    <div class="card sec" style="margin-bottom:14px">
+      <h2>Tongue-twister warm-up</h2>
+      <div class="meta">Say each one slowly first, then at normal speed. Press <b>Say it</b> and read the whole line — I wait for you, and each word turns green as you say it. Press <b>Stop</b> (or just finish) and every word is scored. Three clean reps (90%+) fills the dots. Weak sounds are marked ★.</div>
+      <div class="filters" id="setChips" style="margin:12px 0 0"></div>
+    </div>
+    <div id="twList"></div>
+  </section>
+
+  <!-- WORDS -->
+  <section class="view" id="v-words">
+    <div class="card sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><h2 id="wTitle">Tricky words</h2><div class="meta">Missed words are added automatically. Tap any word while reading to save it.</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="reviewBtn">Review due</button><button class="btn" id="drillBtn">▶ Listen to all</button></div>
+      </div>
+      <div style="display:flex;gap:8px;margin:14px 0 4px"><input type="text" id="addWord" placeholder="Add a word you find hard…"><button class="btn" id="addWordBtn">Add</button></div>
+      <div id="reviewBox"></div>
+      <div id="wordList" style="margin-top:6px"></div>
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section class="view" id="v-progress">
+    <div class="card sec"><div class="stats" id="pStats"></div>
+      <h2>Trend</h2><div class="legend2"><span><i style="background:var(--accent)"></i>Words per minute</span><span><i style="background:#f59e0b"></i>Accuracy %</span></div>
+      <div id="pChart"></div></div>
+    <div class="card sec" style="margin-top:14px"><h2>Your sound profile</h2><div class="meta" style="margin-bottom:8px">Where you slip most (last 15 sessions).</div><div id="pSounds"></div></div>
+    <div class="card sec" style="margin-top:14px"><h2>Level progress</h2><div class="meta" style="margin-bottom:8px">A text is mastered at 93%+ accuracy and ~90% of its target speed. Finish 2 per level to move up.</div><div id="pLevels"></div></div>
+    <div class="card sec" style="margin-top:14px"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Recent sessions</h2><div style="display:flex;gap:8px"><button class="btn small" id="expCsv">Export CSV</button><button class="btn small" id="clearHist">Clear</button></div></div><div id="pTable"></div></div>
+  </section>
+
+  <!-- TIMER -->
+  <section class="view" id="v-time">
+    <div class="card sec tmcard">
+      <h2>Practice timer</h2>
+      <div class="meta">Pick a duration, press Start and practise. Every finished session is added to your daily, weekly and monthly totals.</div>
+      <div class="tm-big" id="tmBig">15:00</div>
+      <div class="bar"><i id="tmBar"></i></div>
+      <div class="acts" style="margin-top:0"><button class="btn primary" id="tmStartBtn">▶ Start</button><button class="btn" id="tmFinishBtn">■ Finish &amp; log</button><button class="btn" id="tmResetBtn">Discard</button></div>
+      <div class="filters" id="tmChips" style="margin:16px 0 0"></div>
+      <div class="tmrow"><input type="number" id="tmCustom" min="1" max="600" placeholder="Custom minutes"><button class="btn small" id="tmSetBtn">Set</button></div>
+    </div>
+    <div class="card sec" style="margin-top:14px">
+      <h2>Your time</h2>
+      <div id="tmGoal" class="meta" style="margin:2px 0 12px"></div>
+      <div class="stats" id="tmStats"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px"><h2 style="margin:0">Minutes per day</h2><div class="seg" id="tmRange"><button data-r="7">7 days</button><button data-r="14">14 days</button><button data-r="30">30 days</button></div></div>
+      <div id="tmChart"></div>
+      <div class="meta" style="margin-top:6px">Dashed line = your daily goal (change it in Settings). Green bars reached the goal.</div>
+    </div>
+    <div class="card sec" style="margin-top:14px"><h2>Today's sessions</h2><div id="tmToday"></div>
+      <div class="tmrow" style="justify-content:flex-start"><input type="number" id="tmManual" min="1" max="600" placeholder="Forgot the timer? Minutes" style="width:220px"><button class="btn small" id="tmManualBtn">Add to today</button></div></div>
+    <div class="card sec" style="margin-top:14px"><h2>Last 7 days</h2><div id="tmDays"></div></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="v-settings">
+    <div class="card sec">
+      <h2>Daily goal</h2>
+      <div class="fld" style="margin-top:10px"><label>Minutes of practice per day</label><input type="number" id="cfgGoal" min="5" max="120" step="5" value="15"></div>
+      <h2 style="margin-top:20px">Data</h2>
+      <div class="acts" style="margin-top:8px"><button class="btn" id="resetAll">Reset local data</button></div>
+    </div>
+  </section>
+</div>
+
+<div class="pop" id="pop">
+  <div class="wd" id="popWord"></div>
+  <div class="acts" style="margin-top:10px">
+    <button class="btn small" id="popHear">🔊 Hear</button><button class="btn small" id="popSlow">Slow</button>
+    <button class="btn small" id="popDef">Meaning</button><button class="btn small" id="popSave">＋ Save</button>
+    <button class="btn small" id="popFrom">Listen from here</button>
+  </div>
+  <div class="def" id="popDefBox"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+/* ============ CONFIG — paste your Apps Script URL here ============
+   Put your Web App URL (must end with /exec) between the quotes.
+   If you set a TOKEN in Code.gs, put the same text in token below.
+   Leave url empty ("") to run in local-only mode (no cloud sync).      */
+const DEFAULT_CLOUD={
+  url:"",
+  token:""
+};
+
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid=()=>"s"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const clean=w=>w.replace(/^[^A-Za-z0-9']+|[^A-Za-z0-9']+$/g,"");
+const norm=w=>w.toLowerCase().replace(/[’]/g,"'").replace(/[^a-z0-9']/g,"");
+const fmtTime=s=>{s=Math.round(s);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+const dayKey=ts=>{const d=new Date(ts);return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate()};
+const FUNC=new Set("the a an of to in on at for and or but is are was were be been it its this that with as by from he she they we you i not so if my your our his her their than then there".split(" "));
+
+/* ============ CONTENT ============ */
+const LEVELS=[null,{n:"Foundation",w:110},{n:"Everyday",w:125},{n:"Confident",w:135},{n:"Professional",w:145},{n:"Executive",w:150},{n:"Mastery",w:155}];
+const PASSAGES=[
+{id:"a1",lv:1,cat:"Daily life",t:"A Quiet Morning",focus:["ending"],tone:"Calm and steady",
+ gist:"A short description of a calm daily routine.",flow:["Waking up and making tea","The quiet street outside","Walking to work","Planning the day at her desk"],
+ vocab:[["routine","things you do regularly"],["calmly","in a relaxed way"],["window","glass opening in a wall"]],
+ tips:["This level is about rhythm, not speed. Keep every sentence the same easy pace.","Let your voice fall at every // — it sounds finished and confident."],
+ x:`Every morning, / Sara wakes up at *six* o'clock. She makes a cup of tea / and sits by the window. The street is quiet, / and the air is cool.
+
+Later, / she walks to work and listens to music. At her desk, / she opens her laptop and writes a short list. It is a simple routine, / but it helps her start the day *calmly*.`},
+{id:"a2",lv:1,cat:"Everyday",t:"At the Coffee Shop",focus:["pb"],tone:"Friendly and polite",
+ gist:"A polite, simple order at a café.",flow:["Greeting and main order","Adding a muffin and asking a question","Paying"],
+ vocab:[["altogether","in total"],["fresh","made recently"],["blueberry","a small blue fruit"]],
+ tips:["Questions go UP at the end: “Is it fresh today?”","Smile when you say “Good morning” — your tone changes immediately."],
+ x:`Good morning! / Can I have a *large* coffee, please? / With a little milk, / and no sugar.
+
+Thank you. / And I'd also like a *blueberry* muffin. / Is it fresh today? / Great, / I'll take one. How much is that altogether? / Perfect. Here you are.`},
+{id:"a3",lv:1,cat:"Professional basics",t:"Introducing Yourself",focus:["ending"],tone:"Warm and confident",
+ gist:"A short professional self-introduction.",flow:["Name and greeting","Current job and experience","Personal interests","Closing line"],
+ vocab:[["pleasure","a feeling of enjoyment"],["customer service","helping customers"],["looking forward to","feeling excited about"]],
+ tips:["Say your name slowly and clearly — it is the one word everyone must catch.","Pause after each idea. A calm introduction sounds senior."],
+ x:`Hello, / my name is Daniel, / and it's a *pleasure* to meet you. I work in customer service, / and I have been on this team for three years.
+
+I enjoy helping people / solve problems. In my free time, / I like reading / and learning new things. I'm *looking forward* to working with you.`},
+
+{id:"b1",lv:2,cat:"Mindset",t:"Learning Something New",focus:["ending","cluster"],tone:"Encouraging",
+ gist:"Why steady daily practice beats occasional long sessions.",flow:["Learning feels uncomfortable","Small practice wins","How to read aloud","Rhythm comes from continuing"],
+ vocab:[["repetition","doing something again and again"],["lasting","continuing for a long time"],["fluency","smooth, natural speaking"]],
+ tips:["Don't go back when you stumble. Keep the rhythm; fix the word afterwards.","Stress “everything”, “afterwards” and “continuing” — they carry the message."],
+ x:`Learning something new / is rarely *comfortable* at the start. You make mistakes, / you forget things, / and progress feels slow. But small, steady practice / changes *everything*.
+
+Ten minutes a day / is better than two hours once a week, / because your brain needs repetition / to build lasting habits. When you read aloud, / try not to stop at every difficult word. Keep going, / even if you are not perfect, / and come back to the hard words *afterwards*. Fluency comes from rhythm, / and rhythm comes from *continuing*.`},
+{id:"b2",lv:2,cat:"Travel",t:"A Missed Connection",focus:["ending","vf"],tone:"Warm storytelling",
+ gist:"A travel delay turns into a story about small kindness.",flow:["Flight delayed, train missed","Asking for help at the desk","Kind, efficient service","The lesson: kindness matters"],
+ vocab:[["delayed","later than planned"],["timetable","schedule of departures"],["grateful","thankful"]],
+ tips:["Storytelling: speed up slightly in the action, slow down at the lesson.","Stress “kindness” and “difference” in the final sentence."],
+ x:`The flight to Manchester was delayed / by almost three hours, / so by the time we landed, / the last train had already left. We walked up to the information desk / and explained the problem. The agent was friendly / and efficient.
+
+She suggested a late coach service, / checked the timetable twice, / and even wrote the platform number / on a small piece of paper. It was past midnight / when we finally reached the hotel, / tired but grateful. Sometimes a journey does not go as planned, / and a little *kindness* / from a stranger / makes all the *difference*.`},
+{id:"b3",lv:2,cat:"Service calls",t:"Booking a Hotel by Phone",focus:["pb"],tone:"Polite and clear",
+ gist:"A caller books a room and asks about extras.",flow:["Request: two nights from Friday","Ask about breakfast and late check-out","Room preference","Ask for confirmation by email"],
+ vocab:[["available","free to book"],["included","part of the price"],["confirmation","written proof of booking"]],
+ tips:["When you ask for something, soften with “I'd like…” and “Could you…”.","Slow down on dates and numbers — clarity beats speed."],
+ x:`Good afternoon, / I'd like to book a room / for *two nights*, / arriving this Friday. Do you have anything available?
+
+That sounds good. / Could you tell me / whether breakfast is included? And is there a late check-out option? I'd prefer a *quiet* room / on a higher floor, / if possible. Could you send the confirmation / by email? Thank you very much.`},
+
+{id:"c1",lv:3,cat:"Customer service",t:"Handling a Difficult Call",focus:["ending","cluster"],tone:"Empathetic and in control",
+ gist:"An agent resolves a double-charge complaint with empathy.",flow:["Acknowledge the frustration","Review the account","Explain the problem and apologise","Give a clear solution and timeline","Close the call"],
+ vocab:[["processed","completed by the system"],["inconvenience","a small problem or trouble"],["business days","working days, not weekends"]],
+ tips:["Slow down 10% on the apology — it must sound sincere, not scripted.","Fall at the end of statements; rise only on the final question."],
+ x:`Thank you for calling, / and I appreciate your patience. I understand how frustrating this situation must be, / and I would like to help you / resolve it *today*. Let me review your account / so I can see exactly what happened.
+
+I can see that the payment was processed / *twice* on Tuesday. That should not have happened, / and I apologize for the inconvenience. I am going to submit a refund request / right now, / and you will receive a confirmation email / within the next few minutes. The money should appear in your account / in three to five business days. Is there anything else / I can help you with this afternoon?`},
+{id:"c2",lv:3,cat:"Customer service",t:"Explaining a Delay to a Client",focus:["ending","cluster"],tone:"Accountable and reassuring",
+ gist:"Updating a client about a delayed shipment and the recovery plan.",flow:["Update and bad news","Apology","What we are doing","Next step and personal commitment"],
+ vocab:[["shipment","goods being sent"],["priority handling","processed before other orders"],["tracking number","code to follow a parcel"]],
+ tips:["Bad news first, clearly, then the solution. Don't bury it.","Stress “priority”, “today” and “personally” — these rebuild trust."],
+ x:`Thank you for your patience. / I'm calling to update you / on your order. Unfortunately, / the shipment has been delayed / by *two days*, / due to a problem at the warehouse.
+
+I sincerely apologize / for the inconvenience. Here is what we are doing: / we have moved your order / to *priority* handling, / and it will leave the warehouse tomorrow morning. You will receive a tracking number / by email *today*. If anything changes, / I will contact you *personally*.`},
+{id:"c3",lv:3,cat:"Explainer",t:"How Habits Work",focus:["th","long"],tone:"Clear, teacher-like",
+ gist:"The three-part loop behind every habit and how to change one.",flow:["The habit loop: cue, routine, reward","Why habits feel automatic","How to change a habit"],
+ vocab:[["cue","a signal that starts something"],["automatic","happening without thinking"],["replace","put something new instead"]],
+ tips:["Explaining = steady and slightly slower. Imagine one listener across a table.","Stress the three loop words: cue, routine, reward."],
+ x:`A habit is a simple loop / with three parts: / a *cue*, / a *routine*, / and a *reward*. The cue tells your brain to start. The routine is the action itself. The reward is the good feeling / that makes your brain want to repeat it.
+
+This is why habits feel *automatic*. After enough repetitions, / the loop runs / with almost no effort. To change a habit, / you do not need to remove the cue / or the reward. You only need to replace the *routine* / with a better one.`},
+
+{id:"d1",lv:4,cat:"Management",t:"Leading a Team",focus:["th","ending"],tone:"Measured and credible",
+ gist:"What separates great leaders: conditions, listening and trust.",flow:["Leaders create conditions","Listen, explain, give feedback","Learning from mistakes","Trust turns individuals into a team"],
+ vocab:[["conditions","the situation that makes something possible"],["incentive","a reward for doing something"],["consistently","every time, reliably"]],
+ tips:["Long sentences: breathe only at the / marks, never in the middle of an idea.","Stress “trust” in the last sentence — it is the point of the whole text."],
+ x:`Good leaders do not simply give instructions; / they create the conditions / in which people can do their *best* work. They listen carefully, / they explain the reasons behind decisions, / and they give feedback / that is specific, / honest, / and timely.
+
+When a team member makes a mistake, / a strong manager asks what can be learned / rather than who is to blame. Over time, / this builds *trust*. And trust, / more than any target or incentive, / is what turns a group of individuals / into a team that performs consistently, / even under pressure.`},
+{id:"d2",lv:4,cat:"Reporting",t:"Weekly Performance Update",focus:["number","cluster"],tone:"Confident and structured",
+ gist:"A manager presents weekly KPIs, flags one risk and moves on.",flow:["Opening and signpost","Three results with numbers","One area of concern","Action taken and invitation for questions"],
+ vocab:[["service level","% of calls answered within target time"],["handling time","how long a call takes"],["abandon rate","% of callers who hang up before an answer"]],
+ tips:["Numbers: say them slowly and stress the unit — “eighty-four PERCENT”.","Present the risk calmly, then the action. Calm = control."],
+ x:`Good morning, everyone. / Let me walk you through this week's results. First, / our service level reached *eighty-four percent*, / which is two points above target. Second, / average handling time dropped / by *twelve seconds*, / and customer satisfaction stayed at *ninety-one percent*.
+
+There is one area / that needs attention: / the *abandon rate* rose slightly on Wednesday / during the afternoon peak. We have already adjusted the schedule / for next week. Any questions / before we move on?`},
+{id:"d3",lv:4,cat:"Coaching",t:"Coaching a Team Member",focus:["ending"],tone:"Supportive but direct",
+ gist:"A feedback conversation: strength first, one opportunity, a practice plan.",flow:["Start with a real strength","Introduce one opportunity","Give a concrete technique","Invite their view"],
+ vocab:[["opportunity","something to improve (a kinder word)"],["acknowledge","show that you recognise something"],["frustrating","annoying and upsetting"]],
+ tips:["Soften your speed on the opportunity — slower sounds kinder.","The last question should rise warmly. It invites, not tests."],
+ x:`I want to start with what you did *well*. / Your tone on the calls / is warm and professional, / and customers clearly trust you. That is a real strength.
+
+Now, / I'd like us to look at one *opportunity*. / When a customer is upset, / you sometimes move to the solution / before acknowledging the *problem*. Let's practice / pausing first, / saying, “I understand why that's frustrating,” / and *then* solving it. How does that sound to you?`},
+{id:"d4",lv:4,cat:"Escalations",t:"Handling an Escalated Complaint",focus:["cluster","ending"],tone:"Calm and accountable",
+ gist:"A manager takes ownership of an escalated billing problem.",flow:["Welcome the escalation","Confirm the facts","Take responsibility","Commit to specific actions and a follow-up"],
+ vocab:[["escalated","passed to a more senior person"],["responsibility","being the one who must fix it"],["in writing","as an email or document"]],
+ tips:["Lower your pitch slightly: calm voices sound more authoritative.","“Today” and “Friday” are promises — say them slowly."],
+ x:`I completely understand / why you asked to speak with a manager, / and I'm glad you did. Before anything else, / let me make sure I have the full picture. You were charged twice, / you contacted us twice, / and the issue is *still* not resolved. Is that correct?
+
+Thank you. / That is not the experience we want you to have, / and I take full *responsibility* / for making it right. Here is what I will do / *today*: / I'll process the refund myself, / confirm it in writing, / and call you on *Friday* / to make sure it has arrived.`},
+
+{id:"e1",lv:5,cat:"Presentations",t:"Quarterly Business Review",focus:["th","long"],tone:"Authoritative and organised",
+ gist:"An executive summary: results, drivers, risk and priority.",flow:["Agenda in three parts","Headline numbers","What drove them","The main risk","Top priority going forward"],
+ vocab:[["retention","keeping customers over time"],["consecutive","one after another"],["onboarding","getting new clients started"]],
+ tips:["Say the agenda clearly: your audience will follow you through it.","Pause for one full beat before “However” — contrast needs space."],
+ x:`Thank you all for being here. / Today I'll cover three things: / our results this quarter, / the *key drivers* behind them, / and our priorities / for the next ninety days.
+
+First, / the numbers. Revenue grew *eight percent* / compared with last quarter, / driven mainly by stronger retention / in our largest accounts. Customer satisfaction improved / for the third consecutive quarter. However, / we also see a clear *risk*: / onboarding time for new clients / remains longer than our target. Addressing this / is our *top priority* going forward.`},
+{id:"e2",lv:5,cat:"Negotiation",t:"Negotiating a Contract Renewal",focus:["pb","vf"],tone:"Firm yet collaborative",
+ gist:"Proposing new renewal terms while keeping the relationship strong.",flow:["Appreciation and intent","The problem with current terms","The proposal and its benefits","Invitation to discuss concerns"],
+ vocab:[["partnership","a close working relationship"],["modest","small, not large"],["middle ground","a compromise"]],
+ tips:["Firm = slow and steady, not loud. Don't rush the proposal.","“Both sides” and “middle ground” are your collaborative signals — stress them."],
+ x:`We value this partnership, / and we would like to continue it / for *many years* to come. That said, / the current terms no longer reflect / the volume we deliver / or the quality you receive.
+
+What we are proposing / is a *three-year agreement* / with a modest price adjustment, / in exchange for guaranteed volume / and priority support. I believe this structure / is fair to *both sides*. If there are concerns, / I'd like to hear them, / and I'm open to finding a *middle ground*.`},
+{id:"e3",lv:5,cat:"Leadership",t:"Managing Change",focus:["th","ending"],tone:"Thoughtful and reassuring",
+ gist:"Why people fear change and how leaders should communicate it.",flow:["People fear losing control","Explain why before how","Participants, not observers","Communicate early and honestly"],
+ vocab:[["resist","refuse to accept"],["participants","people who take part"],["uncertainty","not knowing what will happen"]],
+ tips:["Short last lines (“Silence is not.”) need a real pause before them.","Slow, low and warm — this is a reassuring message."],
+ x:`Change is difficult, / not because people resist improvement, / but because they fear *losing control*. As leaders, / our first responsibility / is to explain *why* / the change is happening, / before we explain *how*.
+
+When people understand the reason, / they become participants / instead of observers. Communicate early, / communicate often, / and be honest about what you *don't yet know*. Uncertainty is manageable. // Silence is *not*.`},
+{id:"e4",lv:5,cat:"Interviews",t:"Walking Through Your Career",focus:["long","ending"],tone:"Confident and personal",
+ gist:"A strong career narrative for an interview: past, growth, direction.",flow:["Where I started","The moment I found my strength","Growth in responsibility","Skills gained and what I want next"],
+ vocab:[["front line","directly serving customers"],["prioritize","decide what matters most"],["scale","grow to a bigger level"]],
+ tips:["Interview rhythm: confident, not rushed. Pause between the stages of your story.","End on the future — a rising, positive tone on “scale that impact”."],
+ x:`I started my career / on the front line, / answering customer calls / and learning how people really communicate / under pressure. Within a year, / I was coaching new colleagues, / and that is when I discovered / how much I enjoy *developing people*.
+
+Over the next few years, / I took on larger responsibilities: / first leading a team, / then managing an entire floor. Each step taught me something different: / how to *listen*, / how to *prioritize*, / and how to turn *results* into a clear plan. What I'm looking for now / is a role / where I can *scale* that impact.`},
+
+{id:"f1",lv:6,cat:"Essay",t:"The Value of Attention",focus:["long","cluster"],tone:"Reflective and precise",
+ gist:"Attention is our scarcest resource and must be protected deliberately.",flow:["Attention is valuable but wasted","Distractions add up","Task-switching research","Decide deliberately where focus belongs"],
+ vocab:[["notification","an alert on a device"],["considerably","by a large amount"],["deliberately","on purpose"]],
+ tips:["Long sentences: think in phrases of 6–8 words, breathe at each /.","The last sentence is the conclusion — slow down and finish strongly."],
+ x:`Attention is the most valuable resource we have, / yet we spend it carelessly. Every notification, / every headline, / and every passing distraction / asks for a small piece of it, / and although each request seems harmless, / together they quietly reshape how we think.
+
+Researchers have observed / that people who constantly switch between tasks / take considerably longer to finish them, / and make noticeably more errors / along the way. The solution is not to abandon technology altogether, / but to decide *deliberately* / where our focus belongs, / and to protect it / with the same care / that we would give to our time / or our money.`},
+{id:"f2",lv:6,cat:"Leadership essay",t:"Why Trust Beats Targets",focus:["th","cluster","long"],tone:"Calm authority",
+ gist:"Targets create fear; trust makes problems surface early.",flow:["We measure what is easy to count","Targets create fear","Trust works differently","Problems surface early; standards rise"],
+ vocab:[["stubbornly","refusing to change"],["surface","become visible"],["standard","level of quality expected"]],
+ tips:["Sophisticated texts reward patience: slow down 5–10 WPM and be precise.","Stress “fear”, “early”, “stronger” and “watching” — the backbone of the argument."],
+ x:`Most organizations measure what is easy to count, / and then wonder why the things that matter most / remain stubbornly difficult to improve. Targets create focus, / but they also create *fear*, / and fear quietly teaches people / to protect themselves / rather than to take responsibility.
+
+Trust works differently. When people believe / that honesty will be rewarded / rather than punished, / problems surface *early*, / when they are still small / and inexpensive to fix. The result is not a weaker standard, / but a *stronger* one: / a standard that people hold themselves to, / even when nobody is *watching*.`},
+{id:"f3",lv:6,cat:"Public speaking",t:"Keynote Opening",focus:["ending"],tone:"Warm, slow, dramatic",
+ gist:"A keynote opening that hooks the audience with a question.",flow:["Invite them to imagine","Three rhetorical questions","State the purpose","Promise what's coming"],
+ vocab:[["imagine","picture in your mind"],["exceptional","far above average"],["rhetorical","asked for effect, not for an answer"]],
+ tips:["Pauses are your power: hold each // for a full second. It will feel too long — it isn't.","Slow down on every question; let your voice rise warmly."],
+ x:`Imagine / for a moment / that every customer who calls you / is having *the worst day* of their month. // How would you speak to them? / How *slowly*? / How *kindly*?
+
+That question is the reason I'm standing here today. Because the difference between a good company / and an *exceptional* one / is rarely the product. // It is the *moment* / when a human being / chooses to care / and *shows* it. Over the next twenty minutes, / I'll show you exactly how.`},
+{id:"f4",lv:6,cat:"Business essay",t:"Customer Experience and Automation",focus:["long","cluster"],tone:"Analytical and polished",
+ gist:"Machines handle routine requests; humans win the emotional, high-stakes ones.",flow:["Automation changed service","Routine tasks go to machines","Human conversations decide loyalty","The future representative"],
+ vocab:[["judgment","ability to decide wisely"],["ambiguous","unclear, with more than one meaning"],["credibility","being believable and trusted"]],
+ tips:["Lists of three (“empathy, clarity, and credibility”): rise, rise, fall.","“Consequently” starts the conclusion — pause before it."],
+ x:`Automation has transformed customer service, / but it has not eliminated the need for *human judgment*. Routine requests, / such as password resets or order tracking, / are now handled instantly and accurately / by machines.
+
+What remains / are the conversations that are emotional, / ambiguous, / or high-stakes, / and those conversations are precisely where *empathy*, / clarity, / and credibility / determine whether a customer stays or leaves. Consequently, / the most valuable representatives of the future / will not be those who work *like* machines, / but those who excel at everything machines *cannot* do.`},
+{id:"p1",lv:2,cat:"Pronunciation",t:"Sound Drill: P, B and V",focus:["pb","vf"],tone:"Crisp and precise",
+ gist:"Sentences packed with the sounds Arabic speakers most often mix: P, B, V.",flow:["B and P sentences","V and F sentences","Mixed sentences"],
+ vocab:[["particular","specific"],["proposal","a formal suggestion"],["budget","money plan"]],
+ tips:["P = a puff of air (hold a tissue — it should move). B = voiced, no puff.","V = top teeth on bottom lip with a buzz."],
+ x:`Peter bought a big blue bag / of perfect purple plums. Brian prefers to pack his bags / before the bus arrives. Victor visited seven very quiet villages / in the valley.
+
+Please bring both the paper and the pen, / because we have a busy Monday. The particular problem with the proposal / was the budget, / not the people behind it. Fifty-five fresh fish / filled the five big baskets / by the river.`}
+];
+/* each passage gets its target speed from its level (used by scoring, mastery and library) */
+PASSAGES.forEach(p=>{p.wpm=LEVELS[p.lv].w;p.title=p.t});
+
+const SETS={pb:"P / B",vf:"V / F",th:"TH",rl:"R / L",sh:"S / SH",chj:"CH / J",hh:"H sound",vowel:"Vowels",ending:"Word endings",cluster:"Clusters",num:"Numbers",call:"Call phrases",flow:"Professional flow"};
+const TWISTERS=[
+{id:"t1",set:"pb",lv:1,x:"Pablo packed a big box of purple pencils before breakfast."},
+{id:"t2",set:"pb",lv:1,x:"Bold bakers bring brown bread and blueberry pies to the public park."},
+{id:"t3",set:"pb",lv:2,x:"Poppy's boss posted a brief, polite, but pointed proposal about the budget."},
+{id:"t4",set:"pb",lv:3,x:"A proper plan prevents poor performance, and a better plan builds bigger profits."},
+{id:"t5",set:"vf",lv:1,x:"Vera values very fresh vegetables over frozen food."},
+{id:"t6",set:"vf",lv:2,x:"Five brave volunteers voted for a visible, valuable, and verified venue."},
+{id:"t7",set:"vf",lv:2,x:"Victor's favorite video featured a vivid view of the valley in fall."},
+{id:"t8",set:"vf",lv:3,x:"Our vendor verified the invoice, forwarded the file, and fixed the five final faults."},
+{id:"t9",set:"th",lv:1,x:"Thirty thoughtful thinkers thanked the three thin teachers."},
+{id:"t10",set:"th",lv:2,x:"Those brothers think that this weather is rather thrilling."},
+{id:"t11",set:"th",lv:2,x:"Through thick and thin, the third theory thoroughly thrived."},
+{id:"t12",set:"th",lv:3,x:"Both months this year, the growth in the northern and southern regions was worth the effort."},
+{id:"t13",set:"rl",lv:1,x:"Real red lorries roll around the long, rural road."},
+{id:"t14",set:"rl",lv:2,x:"Larry really loves to read rare, long, relaxing library letters."},
+{id:"t15",set:"rl",lv:2,x:"The reliable clerk carefully reviewed the large, rural, regional report."},
+{id:"t16",set:"rl",lv:3,x:"Lola's rural railroad route rarely allows late arrivals."},
+{id:"t17",set:"sh",lv:1,x:"She should show Sam the six shiny silver shoes."},
+{id:"t18",set:"sh",lv:2,x:"Sixty shy salesmen sorted six sets of shiny special shirts."},
+{id:"t19",set:"sh",lv:2,x:"The social specialist suggested a sensible, structured session."},
+{id:"t20",set:"sh",lv:3,x:"Sasha's cheerful teacher shares some surprising lessons each Thursday."},
+{id:"t21",set:"ending",lv:1,x:"She asked, learned, tested, and finished the tasks she had started."},
+{id:"t22",set:"ending",lv:2,x:"He plans, builds, tests, and sends the reports to the clients' desks."},
+{id:"t23",set:"ending",lv:3,x:"Next month's costs and the sixth month's results exceeded the experts' forecasts."},
+{id:"t24",set:"ending",lv:2,x:"Waiting, wondering, and worrying wasted the time we had been given."},
+{id:"t25",set:"cluster",lv:2,x:"The strict structure strengthened the strategy through strong, streamlined processes."},
+{id:"t26",set:"cluster",lv:2,x:"Strong spring storms scrambled the schedules, so strangers shared stretched, crowded trains."},
+{id:"t27",set:"cluster",lv:3,x:"The sixth strict instructor explained the complex concepts clearly and completely."},
+{id:"t28",set:"cluster",lv:3,x:"Developmental strategies should strengthen international customer relationships."},
+{id:"t29",set:"flow",lv:2,x:"Thank you for holding; I've reviewed your account, and I can confirm that the refund has been processed successfully."},
+{id:"t30",set:"flow",lv:3,x:"Our quarterly performance exceeded expectations, particularly in the Middle East and Southern Europe."},
+{id:"t31",set:"flow",lv:2,x:"Please allow me to summarize the three key priorities for the upcoming fiscal year."},
+{id:"t32",set:"flow",lv:3,x:"To be perfectly transparent, the primary risk is not the technology; it's the timeline."},
+{id:"t33",set:"pb",lv:2,x:"Peter Piper picked a peck of pickled peppers."},
+{id:"t34",set:"pb",lv:2,x:"Big black bugs bleed blue black blood."},
+{id:"t35",set:"pb",lv:2,x:"Both brothers brought bright blue balloons to the birthday party by bus."},
+{id:"t36",set:"pb",lv:3,x:"Pete's proud parents packed a plain paper plate of baked potatoes."},
+{id:"t37",set:"vf",lv:2,x:"Very few vans valued the five fine forty-foot vessels."},
+{id:"t38",set:"vf",lv:2,x:"Fresh fish and fried chicken filled Friday's family feast."},
+{id:"t39",set:"vf",lv:3,x:"Eleven vivid vultures flew over seven vast valleys."},
+{id:"t40",set:"vf",lv:2,x:"Verify that the five vendors received every invoice before Friday."},
+{id:"t41",set:"th",lv:2,x:"This thin thread threads through three thick thistles."},
+{id:"t42",set:"th",lv:2,x:"I think that Thursday's weather will be thick and thundery."},
+{id:"t43",set:"th",lv:3,x:"Either brother thinks the other's father is a worthy author."},
+{id:"t44",set:"th",lv:2,x:"Thank them for their thoughtful and thorough response on Thursday."},
+{id:"t45",set:"rl",lv:2,x:"Red lorry, yellow lorry, red lorry, yellow lorry."},
+{id:"t46",set:"rl",lv:2,x:"Roll the red rug right around the long library railing."},
+{id:"t47",set:"rl",lv:3,x:"A really reliable report requires regular reviews, clearly."},
+{id:"t48",set:"rl",lv:3,x:"Laura's relatives rarely travel through London in rainy weather."},
+{id:"t49",set:"sh",lv:2,x:"She sells seashells by the seashore."},
+{id:"t50",set:"sh",lv:2,x:"Sheila's shop sells shirts, shorts, shoes, and sunshades."},
+{id:"t51",set:"sh",lv:3,x:"Special Swiss sandwiches should be served fresh and sliced thin."},
+{id:"t52",set:"ending",lv:2,x:"He asked, helped, checked, and fixed the files he had opened."},
+{id:"t53",set:"ending",lv:2,x:"The clients called, waited, asked questions, and requested updates."},
+{id:"t54",set:"ending",lv:3,x:"Teams' goals, managers' tasks, and agents' calls all depend on clear steps."},
+{id:"t55",set:"cluster",lv:3,x:"Three strict street signs stretched across the splendid, crowded square."},
+{id:"t56",set:"cluster",lv:3,x:"Strategic planning strengthens trust between clients and strangers."},
+{id:"t57",set:"cluster",lv:2,x:"Sprinkle some special spices on the crisp, thin crust."},
+{id:"t58",set:"chj",lv:1,x:"Chris just chose a large, juicy orange and a chunk of cheese."},
+{id:"t59",set:"chj",lv:2,x:"Charlie chose cheap chocolate chips for the children's cheesecake."},
+{id:"t60",set:"chj",lv:2,x:"Jenny and Jack enjoyed a joyful journey through Japan in June."},
+{id:"t61",set:"chj",lv:3,x:"Which judge chose to change the charges in January?"},
+{id:"t62",set:"vowel",lv:2,x:"Please sit in that seat and eat a little sweet beet."},
+{id:"t63",set:"vowel",lv:2,x:"Put the wool in the pool, then pull the full bucket out."},
+{id:"t64",set:"vowel",lv:2,x:"Ben had a bad bed, so he bought a new one instead."},
+{id:"t65",set:"vowel",lv:3,x:"Luke took a look at the book while Luke's cook cooked soup."},
+{id:"t66",set:"hh",lv:1,x:"Harry hurriedly hung his heavy hat on the hook in the hallway."},
+{id:"t67",set:"hh",lv:1,x:"How high is the hill behind Hannah's house?"},
+{id:"t68",set:"hh",lv:2,x:"Helen hardly hears how hungry her horse has become."},
+{id:"t69",set:"hh",lv:1,x:"Please hold while I check how this happened."},
+{id:"t70",set:"call",lv:1,x:"Thank you for calling, this is Daniel; how may I help you today?"},
+{id:"t71",set:"call",lv:2,x:"Let me verify your eligibility and confirm your coverage details."},
+{id:"t72",set:"call",lv:2,x:"I'll need your authorization before I can process the order."},
+{id:"t73",set:"call",lv:3,x:"Your deductible and monthly premium are listed on the statement."},
+{id:"t74",set:"call",lv:2,x:"I completely understand your concern, and I appreciate your patience."},
+{id:"t75",set:"call",lv:2,x:"For security purposes, could you please confirm your date of birth?"},
+{id:"t76",set:"call",lv:3,x:"The pharmacy will deliver your prescription within three to five business days."},
+{id:"t77",set:"call",lv:1,x:"Is there anything else I can assist you with before we end the call?"},
+{id:"t78",set:"num",lv:3,x:"Seventy-three, thirteen, thirty, and three hundred thirty-three."},
+{id:"t79",set:"num",lv:2,x:"Call us at five five five, zero one two three, between nine and five."},
+{id:"t80",set:"num",lv:2,x:"The invoice total is one thousand, two hundred and fifty dollars."},
+{id:"t81",set:"num",lv:2,x:"We processed eighty-four orders on Tuesday and ninety-six on Wednesday."},
+{id:"t82",set:"flow",lv:2,x:"Let me place you on a brief hold while I look into that for you."},
+{id:"t83",set:"flow",lv:3,x:"To summarize, we agreed on three actions, two owners, and one deadline."},
+{id:"t84",set:"flow",lv:3,x:"I'll follow up with you by Friday afternoon to confirm everything is resolved."}
+];
+const VOICE=[
+{n:"Belly breathing",d:25,h:"Breathe in through the nose for 4 counts, hold 2, then breathe out slowly on “sss” for 6 counts. Keep your shoulders down."},
+{n:"Lip trill",d:20,h:"Blow air through relaxed lips so they buzz (brrr). Slide your pitch up and down like a siren."},
+{n:"Jaw and face release",d:15,h:"Open your mouth wide, then chew slowly in big circles. Massage your cheeks and let the tension go."},
+{n:"Tongue stretch",d:20,h:"Stick your tongue out: touch chin, nose, left, right. Then circle it around the outside of your teeth."},
+{n:"Humming",d:15,h:"Hum “mmm” and feel the buzz on your lips and nose. Slide from low to high and back."},
+{n:"Big vowels",d:20,h:"Say slowly and exaggerate your lips: ee – ay – ah – oh – oo. Repeat, a little faster each time."},
+{n:"Speed drill",d:25,h:"Repeat pa-ta-ka, pa-ta-ka… then ba-da-ga, ba-da-ga… Start slow, speed up, and stay clear."}
+];
+const TAGS={
+ th:{n:"TH sounds",set:"th",tip:"Put the tip of your tongue lightly between your teeth and push air out. “Think” is not “sink” or “tink”. Drill: three, thirty, thoughtful."},
+ pb:{n:"P / B",set:"pb",tip:"P is a burst of air — hold a tissue in front of your mouth: it should move on “p” but not on “b”. For B, feel your throat vibrate."},
+ vf:{n:"V / F",set:"vf",tip:"For V and F, your upper teeth touch your lower lip. V buzzes in the throat; F is just air. Don't use both lips like a B."},
+ rl:{n:"R / L",set:"rl",tip:"L: tongue tip touches the ridge behind your top teeth. R: tongue pulls back and touches nothing."},
+ ending:{n:"Word endings",set:"ending",tip:"You are dropping endings (-ed, -s, -ing). Finish every word and give the last sound a little extra energy. Drop 10 WPM until it is automatic."},
+ cluster:{n:"Consonant clusters",set:"cluster",tip:"Break long clusters into slow steps (s-t-r → “str”). Say them slowly three times, then at speed."},
+ long:{n:"Long words",set:"flow",tip:"Find the stressed syllable first (deVELopment, interNAtional), say that one clearly, and relax the others."},
+ number:{n:"Numbers",set:"flow",tip:"Say numbers slowly and stress the unit (“eighty-four PERCENT”). Practise them in groups of three digits."},
+ func:{n:"Skipping small words",set:"flow",tip:"You skip small words (the, of, to) — usually a sign of rushing. Follow the pause marks and drop 10 WPM."},
+ other:{n:"Other words",set:"flow",tip:"Say each word 3× slowly, then inside its phrase, then in the full sentence."}
+};
+const INTERVALS=[0,1,3,7,14];
+
+/* ============ STATE ============ */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const S={
+ theme:(()=>{const t=store.get("fr2_theme","morning");if(t==="auto")return window.matchMedia("(prefers-color-scheme: dark)").matches?"night":"morning";return t==="night"?"night":"morning"})(),
+ cfg:Object.assign({goal:15},store.get("fr2_cfg",{})),
+ history:store.get("fr2_hist",[]),vocab:store.get("fr2_vocab",{}),outbox:store.get("fr2_outbox",[]),reps:store.get("fr2_reps",{}),
+ passage:null,tid:"",title:"",level:0,words:[],spans:[],chunks:[],sentences:[],
+ step:"preview",mode:"none",wpm:store.get("fr2_wpm",130),chunk:4,marks:true,
+ pace:{i:0,t:null,running:false,t0:0,passes:0},
+ listening:false,utt:null,voices:[],listenEnd:-1,listenT0:0,shadowT:null,
+ recording:false,rec:null,recStart:0,recTimer:null,carry:"",combined:"",
+ popIdx:-1,drill:{running:false,t:null},rv:null,libLv:0,warmSet:"all",flushing:false,lastRes:null,tw:null,tmRange:7
+};
+
+/* ============ UTIL UI ============ */
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("on"),3600)}
+function inView(el){const r=el.getBoundingClientRect();return r.top>90&&r.bottom<window.innerHeight-90}
+function follow(el){if(el&&!inView(el))el.scrollIntoView({block:"center",behavior:"smooth"})}
+function applyTheme(){
+ document.documentElement.setAttribute("data-theme",S.theme);
+ $("#themeIco").textContent=S.theme==="night"?"☀":"☾";
+ $("#themeTxt").textContent=S.theme==="night"?"Morning":"Night";
+ const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=S.theme==="night"?"#0d1117":"#0f766e";
+}
+
+/* ============ TEXT PARSING ============ */
+function parse(raw){
+ const words=[];
+ raw.trim().split(/\n\s*\n/).forEach((para,pi)=>{
+  let inSt=false;
+  para.trim().split(/\s+/).forEach(tok=>{
+   if(!tok)return;
+   if(tok==="/"||tok==="//"){const w=words[words.length-1];if(w&&w.p===pi)w.ex=Math.max(w.ex,tok.length);return}
+   const starts=tok.startsWith("*"),ends=/\*[^\w*]*$/.test(tok);
+   if(starts)inSt=true;
+   words.push({t:tok.replace(/\*/g,""),p:pi,st:inSt,ex:0,pm:0});
+   if(ends)inSt=false;
+  });
+ });
+ words.forEach(w=>{
+  let a=0;
+  if(/[.!?]["'”’)\]]*$/.test(w.t))a=2;else if(/[,;:—–]["'”’)]*$/.test(w.t))a=1;
+  w.pm=Math.max(a,w.ex);
+ });
+ return words;
+}
+function buildSentences(){
+ S.sentences=[];let st=0;
+ S.words.forEach((w,i)=>{
+  const nx=S.words[i+1];
+  const end=(/[.!?]["'”’)\]]*$/.test(w.t)&&!/^(Mr|Mrs|Ms|Dr|St|vs|etc)\.$/i.test(w.t))||!nx||nx.p!==w.p;
+  if(end){S.sentences.push({s:st,e:i});st=i+1}
+ });
+}
+function buildChunks(){
+ S.chunks=[];let s=0,n=0;
+ S.words.forEach((w,i)=>{
+  n++;const nx=S.words[i+1];
+  if(w.pm>0||n>=S.chunk||!nx||nx.p!==w.p){S.chunks.push({s,e:i});s=i+1;n=0}
+ });
+}
+function loadText(title,raw,p){
+ stopAll();
+ S.passage=p||null;S.tid=p?p.id:"";S.level=p?p.lv:0;S.title=title||"My text";
+ S.words=parse(raw);buildSentences();buildChunks();render();
+ S.pace.i=0;S.pace.passes=0;$("#barFill").style.width="0";
+ $("#results").style.display="none";$("#coach").style.display="none";S.lastRes=null;
+ store.set("fr2_last",{tid:S.tid,title:S.title,text:raw.slice(0,20000)});
+ $("#rTitle").textContent=S.title;
+ const lv=$("#rLevel");lv.textContent=p?("Level "+p.lv+" · "+LEVELS[p.lv].n):"Custom text";
+ $("#rMaster").style.display=p&&masteredP(p)?"inline-block":"none";
+ if(p&&S.wpm<LEVELS[p.lv].w-30){/* leave user's speed */}
+ renderBrief();meta();setStep("preview");
+}
+function render(){
+ const r=$("#reader");r.innerHTML="";let p=-1,el;
+ S.words.forEach((w,i)=>{
+  if(w.p!==p){p=w.p;el=document.createElement("p");r.appendChild(el)}
+  const sp=document.createElement("span");sp.className="w"+(w.st?" st":"");sp.dataset.i=i;sp.textContent=w.t;el.appendChild(sp);
+  if(w.pm){const m=document.createElement("span");m.className="pm"+(w.ex?"":" au");m.textContent=w.pm>1?"//":"/";el.appendChild(m)}
+  el.appendChild(document.createTextNode(" "));
+ });
+ S.spans=[...r.querySelectorAll(".w")];refreshSaved();
+}
+function refreshSaved(){S.spans.forEach((sp,i)=>sp.classList.toggle("saved",!!S.vocab[norm(S.words[i].t)]))}
+function clearMarks(){S.spans.forEach(s=>s.classList.remove("active","done","speaking","ok","miss"))}
+function meta(){
+ const n=S.words.length;
+ $("#meta").innerHTML="<b>"+esc(S.title)+"</b> · "+n+" words · about "+Math.max(1,Math.round(n/S.wpm))+" min at "+S.wpm+" WPM"+(S.passage?" · target "+S.passage.wpm+" WPM":"");
+}
+
+/* ============ BRIEFING ============ */
+function renderBrief(){
+ const p=S.passage,b=$("#brief");b.innerHTML="";
+ let gist,flow,vocab,tips,tone;
+ if(p){gist=p.gist;flow=p.flow;vocab=p.vocab;tips=p.tips;tone=p.tone}
+ else{
+  const long=[...new Set(S.words.map(w=>clean(w.t).toLowerCase()).filter(w=>w.length>=9))].slice(0,6);
+  gist="Your own text. Skim it first and say its main point in one sentence before you read aloud.";
+  flow=[S.sentences.length+" sentences in "+(new Set(S.words.map(w=>w.p)).size)+" paragraph(s).","Notice where each idea ends — that is where you pause.","Mark the 3–5 words that carry the meaning."];
+  vocab=long.map(w=>[w,"tap to hear"]);
+  tips=["Pause at commas (/) and full stops (//). Breathe there, not in the middle of a phrase.","Fall at the end of statements, rise only on questions."];
+  tone="Natural and clear";
+ }
+ const sec=(h)=>{const d=document.createElement("div");d.className="bsec";d.innerHTML="<h4>"+h+"</h4>";return d};
+ const g=document.createElement("div");g.className="bgrid";
+ let d=sec("What it's about");d.innerHTML+="<p>"+esc(gist)+"</p><div class='cue'><b>Inner cue:</b> “"+esc(tone)+".” Say it to yourself before you start.</div>";g.appendChild(d);
+ d=sec("How it flows");d.innerHTML+="<ol>"+flow.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ol>";g.appendChild(d);
+ d=sec("Say these words first");
+ if(!vocab.length)d.innerHTML+="<p class='meta'>No long words — nice and simple.</p>";
+ vocab.forEach(([w,m])=>{const c=document.createElement("span");c.className="vchip";c.innerHTML="<b>"+esc(w)+"</b>"+esc(m);c.onclick=()=>speakWord(w,0.75);d.appendChild(c)});
+ g.appendChild(d);
+ d=sec("Delivery coaching");d.innerHTML+="<ul>"+tips.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul>";g.appendChild(d);
+ d=sec("Before you read (60 seconds)");
+ const target=p?p.wpm:130;
+ ["Skim the whole text silently (30–45 sec) — know where it is going.","Find the bold words and the / and // marks.","Breathe in at each / and out as you read — never read on empty lungs.","Set your target: "+target+" WPM, accuracy 95%+.","Smile slightly. A smile changes your tone, even on the phone."].forEach(t=>{
+  const l=document.createElement("label");l.className="chk";l.innerHTML="<input type='checkbox'><span>"+esc(t)+"</span>";d.appendChild(l);
+ });
+ g.appendChild(d);b.appendChild(g);
+}
+
+/* ============ STEPS / MODES ============ */
+const STEPS=[
+ {k:"preview",l:"Preview",tip:"Skim silently (30–45 s), read the briefing, find the stressed words and the pause marks. Don't read aloud yet."},
+ {k:"listen",l:"Listen",tip:"Listen without speaking and follow the highlight. Turn on “Listen & repeat” to echo each sentence right after the voice."},
+ {k:"pace",l:"Pace",tip:"Read aloud with the moving highlight. Don't go back. Breathe at the / marks. If you stumble, keep going."},
+ {k:"record",l:"Record",tip:"Now read alone at your natural pace. Accuracy first, then speed. The text is scored when you stop."},
+ {k:"coach",l:"Coach",tip:"Read your coaching notes. Drill the weakest sentence, save the words, then record once more."}
+];
+function renderSteps(){
+ const box=$("#steps");box.innerHTML="";
+ const idx=STEPS.findIndex(s=>s.k===S.step);
+ STEPS.forEach((s,i)=>{const b=document.createElement("button");b.dataset.step=s.k;b.className=(s.k===S.step?"on":(i<idx?"done":""));b.innerHTML="<b>"+(i+1)+"</b>"+s.l;box.appendChild(b)});
+ $("#stepTip").textContent=STEPS[idx].tip;
+ $("#nextStep").style.display=idx>=STEPS.length-1?"none":"";
+}
+function setStep(k){
+ stopAll();clearMarks();
+ S.step=k;S.mode=["listen","pace","record"].includes(k)?k:"none";
+ $("#controls").classList.toggle("on",S.mode!=="none");
+ ["pace","listen","record"].forEach(m=>$("#p-"+m).classList.toggle("on",m===S.mode));
+ $("#brief").classList.toggle("on",k==="preview");
+ $("#briefBtn").classList.toggle("primary",k==="preview");
+ S.pace.i=0;$("#barFill").style.width="0";paceUI();
+ if(S.mode==="record")$("#srWarn").style.display=SR?"none":"block";
+ $("#modeHint").textContent={listen:"Tap a word and choose “Listen from here” to start anywhere.",pace:"Raise the speed by 5–10 WPM each time you finish a pass cleanly.",record:"Green = read correctly. Red = missed. Results are approximate — they depend on how well the browser hears you.",preview:"",coach:""}[k]||"";
+ renderSteps();
+ if(k==="coach"){
+  if(S.lastRes){$("#results").style.display="block";$("#coach").style.display="block";$("#coach").scrollIntoView({behavior:"smooth",block:"start"})}
+  else toast("Record a read first and your coaching notes will appear here.");
+ }
+}
+function markStep(k){S.step=k;renderSteps()}
+function stopAll(){pacePause();stopListen();if(S.recording)stopRecord(true);stopDrill();stopTwister(true);stopVoice()}
+
+/* ============ PACE ============ */
+const PM_MS=[0,200,520];
+function paceUI(){
+ const b=$("#paceBtn");
+ b.textContent=S.pace.running?"❚❚ Pause":(S.pace.i>0&&S.pace.i<S.chunks.length?"▶ Resume":"▶ Start");
+}
+function pacePause(){clearTimeout(S.pace.t);if(S.pace.running){S.pace.acc=(S.pace.acc||0)+(Date.now()-S.pace.t0)}S.pace.running=false;paceUI()}
+function paceStart(){
+ if(S.pace.running)return;
+ stopListen();if(S.recording)stopRecord(true);
+ if(S.pace.i>=S.chunks.length){S.pace.i=0;clearMarks();S.pace.acc=0}
+ S.pace.running=true;S.pace.t0=Date.now();paceUI();paceStep();
+}
+function paceStep(){
+ if(!S.pace.running)return;
+ if(S.pace.i>=S.chunks.length){pacePause();finishPace();return}
+ const c=S.chunks[S.pace.i];
+ S.spans.forEach((sp,i)=>{sp.classList.toggle("active",i>=c.s&&i<=c.e);sp.classList.toggle("done",i<c.s)});
+ follow(S.spans[c.s]);
+ const n=c.e-c.s+1;let d=n*60000/S.wpm;
+ if($("#pauseSw").checked)d+=PM_MS[S.words[c.e].pm]*(120/S.wpm);
+ S.pace.i++;
+ $("#barFill").style.width=(S.pace.i/S.chunks.length*100)+"%";
+ S.pace.t=setTimeout(paceStep,d);
+}
+function finishPace(){
+ logSession({mode:"pace",wpm:S.wpm,words:S.words.length,secs:Math.round((S.pace.acc||0)/1000)});
+ S.pace.acc=0;S.pace.passes++;
+ if($("#rampSw").checked&&S.pace.passes<6&&S.wpm<255){
+  S.wpm+=5;$("#wpm").value=S.wpm;$("#wpmO").textContent=S.wpm+" WPM";meta();
+  toast("Clean pass — ramping to "+S.wpm+" WPM…");
+  S.pace.i=0;clearMarks();setTimeout(()=>{if(S.mode==="pace")paceStart()},1800);
+ }else toast("Finished at "+S.wpm+" WPM. Next: record yourself.");
+}
+
+/* ============ SPEECH OUT ============ */
+function loadVoices(){
+ const all=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));S.voices=all;
+ const sel=$("#voiceSel"),saved=store.get("fr2_voice","");sel.innerHTML="";
+ all.forEach(v=>{const o=document.createElement("option");o.value=v.name;o.textContent=v.name+" ("+v.lang+")";sel.appendChild(o)});
+ const pick=all.find(v=>v.name===saved)||all.find(v=>/natural|google us|samantha|daniel|aria|jenny/i.test(v.name))||all.find(v=>v.lang==="en-US")||all[0];
+ if(pick)sel.value=pick.name;
+}
+const voice=()=>S.voices.find(v=>v.name===$("#voiceSel").value)||null;
+function speakWord(w,rate){
+ if(!("speechSynthesis" in window)){toast("Speech isn't supported in this browser");return}
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(w),v=voice();if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
+ u.rate=rate||0.8;speechSynthesis.speak(u);
+}
+function speakText(t,rate,done){
+ if(!("speechSynthesis" in window)){toast("Speech isn't supported in this browser");return}
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(t),v=voice();if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
+ u.rate=rate;if(done)u.onend=done;speechSynthesis.speak(u);
+}
+function listenUI(){$("#listenBtn").textContent=S.listening?"■ Stop":"▶ Listen"}
+function stopListen(){
+ S.listening=false;S.utt=null;clearTimeout(S.shadowT);S.listenEnd=-1;
+ if("speechSynthesis" in window)speechSynthesis.cancel();
+ S.spans.forEach(s=>s.classList.remove("speaking"));listenUI();
+ if(S.mode==="listen")$("#modeHint").textContent="Tap a word and choose “Listen from here” to start anywhere.";
+}
+function mark(i){
+ S.spans.forEach(s=>s.classList.remove("speaking"));
+ const sp=S.spans[i];if(sp){sp.classList.add("speaking");follow(sp)}
+ $("#barFill").style.width=(i/Math.max(1,S.words.length-1)*100)+"%";
+}
+function listenFrom(i,endSent){
+ if(!("speechSynthesis" in window)){toast("Speech isn't supported in this browser");return}
+ stopAll();S.listening=true;S.listenT0=Date.now();S.listenEnd=endSent==null?-1:endSent;listenUI();
+ const si=S.sentences.findIndex(s=>i>=s.s&&i<=s.e);speakSentence(si<0?0:si,i);
+}
+function speakSentence(si,from){
+ if(!S.listening)return;
+ if(si>=S.sentences.length){
+  const secs=Math.round((Date.now()-S.listenT0)/1000);stopListen();$("#barFill").style.width="100%";
+  logSession({mode:"listen",words:S.words.length,secs});toast("Listening finished. Now try it with the Pace step.");return;
+ }
+ const sn=S.sentences[si],st=from==null?sn.s:Math.max(from,sn.s),idx=[],offs=[];let text="";
+ for(let k=st;k<=sn.e;k++){offs.push(text.length);text+=S.words[k].t+" ";idx.push(k)}
+ const u=new SpeechSynthesisUtterance(text.trim()),v=voice();if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
+ u.rate=parseFloat($("#rate").value);let t0=0;
+ u.onstart=()=>{t0=Date.now();mark(idx[0])};
+ u.onboundary=e=>{
+  if(e.name&&e.name!=="word")return;
+  let j=0;for(let q=0;q<offs.length;q++){if(offs[q]<=e.charIndex)j=q;else break}mark(idx[j]);
+ };
+ u.onend=()=>{
+  if(!S.listening||S.utt!==u)return;
+  if(S.listenEnd>=0&&si>=S.listenEnd){stopListen();toast("Now read that sentence yourself, twice.");return}
+  if($("#shadowSw").checked){
+   $("#modeHint").textContent="Your turn — repeat the sentence out loud…";
+   const wait=Math.max(1200,(Date.now()-t0)*1.2+400);
+   S.shadowT=setTimeout(()=>{$("#modeHint").textContent="";speakSentence(si+1)},wait);
+  }else speakSentence(si+1);
+ };
+ S.utt=u;speechSynthesis.speak(u);
+}
+
+/* ============ ALIGNMENT + PATTERNS ============ */
+function align(ref,sp){
+ const n=ref.length,m=sp.length,W=m+1,dp=new Uint16Array((n+1)*W);
+ for(let i=1;i<=n;i++)for(let j=1;j<=m;j++)dp[i*W+j]=ref[i-1]===sp[j-1]?dp[(i-1)*W+j-1]+1:Math.max(dp[(i-1)*W+j],dp[i*W+j-1]);
+ const pairs=[];let i=n,j=m;
+ while(i>0&&j>0){if(ref[i-1]===sp[j-1]){pairs.push([i-1,j-1]);i--;j--}else if(dp[(i-1)*W+j]>=dp[i*W+j-1])i--;else j--}
+ pairs.reverse();
+ const heard={};let pi=-1,pj=-1;
+ pairs.concat([[n,m]]).forEach(([ri,sj])=>{
+  const rg=[],sg=[];for(let a=pi+1;a<ri;a++)rg.push(a);for(let b=pj+1;b<sj;b++)sg.push(b);
+  if(rg.length&&rg.length===sg.length)rg.forEach((a,k)=>heard[a]=sp[sg[k]]);
+  pi=ri;pj=sj;
+ });
+ return{pairs,heard};
+}
+function subTag(a,h){
+ if(!h||a===h)return null;
+ if(a.length===h.length){
+  const d=[...a].map((c,i)=>c!==h[i]?i:-1).filter(i=>i>=0);
+  if(d.length===1){const p=a[d[0]]+h[d[0]];
+   if(p==="pb"||p==="bp")return"pb";if(p==="vf"||p==="fv"||p==="vb"||p==="bv")return"vf";if(p==="rl"||p==="lr")return"rl"}
+ }
+ if(a.includes("th"))for(const r of["t","d","s","z","f"])if(a.replace("th",r)===h)return"th";
+ const strip=x=>x.replace(/(s|es|ed|d|ing)$/,"");
+ if(h===strip(a)||a===strip(h))return"ending";
+ return null;
+}
+function staticTag(w){
+ if(/th/.test(w))return"th";
+ if(/(str|spr|scr|thr|sch|nds|sts|cts|ngth|rld|mpt|lfth|xth)/.test(w))return"cluster";
+ if(/(ed|ing|es)$/.test(w)&&w.length>4||/s$/.test(w)&&w.length>4)return"ending";
+ if(/\d/.test(w))return"number";
+ if(w.length>=9)return"long";
+ if(FUNC.has(w))return"func";
+ return"other";
+}
+function entryFor(word,h){const w=norm(word);const t=subTag(w,h)||staticTag(w);return{w:clean(word).toLowerCase(),h:h||"",p:t}}
+function patCount(entries){const pat={};entries.forEach(e=>{pat[e.p]=(pat[e.p]||0)+1});return pat}
+function weakTags(n){
+ const tot={};S.history.filter(h=>h.pat).slice(-(n||15)).forEach(h=>Object.entries(h.pat).forEach(([k,v])=>{if(k!=="other"&&k!=="func")tot[k]=(tot[k]||0)+v}));
+ return Object.entries(tot).sort((a,b)=>b[1]-a[1]);
+}
+
+/* ============ RECORD ============ */
+function refNorm(){const arr=[],map=[];S.words.forEach((w,i)=>{const n=norm(w.t);if(n){arr.push(n);map.push(i)}});return{arr,map}}
+function liveTrack(spoken,ref){
+ let p=0;const ok=[];
+ for(const sw of spoken){for(let k=p;k<Math.min(p+6,ref.arr.length);k++){if(ref.arr[k]===sw){ok.push(ref.map[k]);p=k+1;break}}}
+ return{ok,p};
+}
+function recUI(){const b=$("#recBtn");b.textContent=S.recording?"■ Stop & score":"● Start reading";b.className="btn "+(S.recording?"rec":"primary")}
+function startRecord(){
+ stopListen();pacePause();clearMarks();$("#results").style.display="none";$("#coach").style.display="none";
+ S.carry="";S.combined="";S.recording=true;S.recStart=Date.now();recUI();
+ $("#live").textContent=SR?"Listening… start reading.":"Timing your reading… press stop when you finish.";
+ clearInterval(S.recTimer);S.recTimer=setInterval(()=>{$("#timer").textContent=fmtTime((Date.now()-S.recStart)/1000)},250);
+ if(!SR)return;
+ const ref=refNorm(),r=new SR();S.rec=r;r.lang="en-US";r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+ r.onresult=e=>{
+  let t="";for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript+" ";
+  S.combined=(S.carry+" "+t).trim();
+  $("#live").textContent=S.combined.split(/\s+/).slice(-18).join(" ");
+  const{ok,p}=liveTrack(S.combined.split(/\s+/).map(norm).filter(Boolean),ref),okSet=new Set(ok);
+  S.spans.forEach((sp,i)=>{sp.classList.toggle("ok",okSet.has(i));sp.classList.remove("active")});
+  const cur=S.spans[ref.map[Math.min(p,ref.map.length-1)]];if(cur){cur.classList.add("active");follow(cur)}
+  $("#barFill").style.width=(p/Math.max(1,ref.arr.length)*100)+"%";
+ };
+ r.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){toast("Microphone is blocked. Allow mic access for this page, then try again.");stopRecord(true)}};
+ r.onend=()=>{if(S.recording){S.carry=S.combined;try{r.start()}catch(err){}}};
+ try{r.start()}catch(err){}
+}
+function stopRecognizer(r,cb){
+ let done=false;const fin=()=>{if(done)return;done=true;cb()};
+ r.onend=fin;r.onerror=()=>{};
+ try{r.stop()}catch(e){fin();return}
+ setTimeout(fin,1400);
+}
+function stopRecord(silent){
+ const was=S.recording;S.recording=false;clearInterval(S.recTimer);recUI();
+ const r=S.rec;S.rec=null;
+ if(silent||!was){if(r){try{r.onend=null;r.onerror=null;r.stop()}catch(e){}}return}
+ const secs=(Date.now()-S.recStart)/1000;
+ $("#live").textContent="Scoring your read…";
+ if(r)stopRecognizer(r,()=>scoreSession(secs));else scoreSession(secs);
+}
+function statGrid(items){
+ const g=document.createElement("div");g.className="stats";
+ items.forEach(([v,l])=>{const d=document.createElement("div");d.className="stat";d.innerHTML="<b></b><span></span>";d.firstChild.textContent=v;d.lastChild.textContent=l;g.appendChild(d)});
+ return g;
+}
+function scoreSession(secs){
+ const ref=refNorm(),box=$("#results");box.style.display="block";box.innerHTML="";
+ if(!SR){
+  const wpm=Math.round(S.words.length/(secs/60));
+  box.appendChild(statGrid([[wpm,"Words per minute"],[fmtTime(secs),"Time"],[S.words.length,"Words"]]));
+  logSession({mode:"record",wpm,words:S.words.length,secs:Math.round(secs)});return;
+ }
+ const spoken=S.combined.split(/\s+/).map(norm).filter(Boolean);
+ if(spoken.length<3||secs<3){box.innerHTML="<div class='empty'>I couldn't hear enough. Check your microphone and try again.</div>";return}
+ const{pairs,heard}=align(ref.arr,spoken),matched=new Set(pairs.map(p=>p[0]));
+ let reached=-1;matched.forEach(k=>{if(k>reached)reached=k});
+ const scored=reached+1,acc=scored?Math.round(matched.size/scored*100):0,wpm=Math.round(scored/(secs/60));
+ S.spans.forEach(sp=>sp.classList.remove("ok","miss","active"));
+ const entries=[],sentStat={};
+ for(let k=0;k<scored;k++){
+  const wi=ref.map[k],si=S.sentences.findIndex(s=>wi>=s.s&&wi<=s.e);
+  sentStat[si]=sentStat[si]||{t:0,m:0};sentStat[si].t++;
+  if(matched.has(k)){S.spans[wi].classList.add("ok");sentStat[si].m++}
+  else{S.spans[wi].classList.add("miss");entries.push(entryFor(S.words[wi].t,heard[k]))}
+ }
+ let weakS=null;
+ Object.entries(sentStat).forEach(([si,v])=>{const a=v.m/v.t;if(v.t>=4&&a<0.75&&(!weakS||a<weakS.a))weakS={si:+si,a}});
+ const uniq=[...new Map(entries.map(e=>[e.w,e])).values()];
+ const sess=logSession({mode:"record",wpm,acc,words:scored,secs:Math.round(secs),missed:entries.slice(0,40),pat:patCount(entries)});
+ // vocabulary
+ const touch=[];uniq.forEach(e=>{if(e.w.length<2||FUNC.has(e.w))return;touch.push(addVocab(e.w,{miss:true}))});
+ pushWords(touch);
+ // render results
+ box.appendChild(statGrid([[acc+"%","Accuracy"],[wpm,"Words per minute"],[fmtTime(secs),"Time"],[uniq.length,"Words missed"]]));
+ if(uniq.length){
+  const h=document.createElement("div");h.style.cssText="font-weight:600;font-size:14px";h.textContent="Words to practise — tap to hear (added to your Words list):";box.appendChild(h);
+  const ch=document.createElement("div");ch.className="chips";
+  uniq.forEach(e=>{const c=document.createElement("span");c.className="chip";c.textContent=e.w+(e.h&&e.h!==norm(e.w)?"  → “"+e.h+"”":"");c.onclick=()=>speakWord(e.w,0.75);ch.appendChild(c)});
+  box.appendChild(ch);
+ }
+ S.lastRes={sess,weakS,uniq};
+ $("#rMaster").style.display=S.passage&&masteredP(S.passage)?"inline-block":"none";
+ renderCoach(sess,weakS,uniq);
+ markStep("coach");$("#controls").classList.remove("on");
+ box.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+/* ============ COACHING ENGINE ============ */
+function masteredP(p){return S.history.some(h=>h.mode==="record"&&h.tid===p.id&&h.acc>=93&&h.wpm>=p.wpm*0.9)}
+function recommendText(){
+ const wt=weakTags().map(x=>x[0]);
+ for(let lv=1;lv<=6;lv++){
+  const ps=PASSAGES.filter(p=>p.lv===lv),done=ps.filter(masteredP).length;
+  if(done>=Math.min(2,ps.length))continue;
+  const todo=ps.filter(p=>!masteredP(p));
+  todo.sort((a,b)=>(b.focus||[]).filter(t=>wt.includes(t)).length-(a.focus||[]).filter(t=>wt.includes(t)).length);
+  return todo[0];
+ }
+ return PASSAGES[PASSAGES.length-1];
+}
+function buildCoaching(s,weakS,uniq){
+ const N=[],p=S.passage,tgt=p?p.wpm:130,acc=s.acc,wpm=s.wpm;
+ const recs=S.history.filter(h=>h.mode==="record"&&h.acc!=null),prev=recs.filter(h=>h.id!==s.id);
+ const paceRec=Math.max(80,Math.round((acc<90?Math.min(wpm,tgt)-15:Math.min(wpm,tgt))/5)*5);
+ // 1 verdict
+ if(acc>=95&&wpm>=tgt*0.95)N.push({k:"good",h:"Strong run — "+acc+"% at "+wpm+" WPM",b:"Accurate and at a natural, professional pace. "+(p&&masteredP(p)?"This text is now mastered.":"One more clean run and this text is mastered.")});
+ else if(acc>=90)N.push({k:"good",h:"Solid read — "+acc+"% accuracy",b:"You are close. Re-read once with the Pace step at "+paceRec+" WPM, then record again aiming for 95%."});
+ else N.push({k:"warn",h:"Accuracy "+acc+"% — slow down and rebuild",b:"This is usually speed or unfamiliar words, not ability. Go back to Listen, then Pace at "+paceRec+" WPM before recording again."});
+ // 2 speed
+ if(wpm<tgt*0.75)N.push({k:"",h:"Your pace is slow ("+wpm+" vs target "+tgt+")",b:"Speed comes from chunking, not rushing: let your eyes read 3–4 words ahead and use the Pace step with auto-ramp (+5 each clean pass)."});
+ else if(wpm>tgt*1.3&&acc<95)N.push({k:"warn",h:"You're racing ("+wpm+" WPM)",b:"Fast and inaccurate sounds nervous. Breathe at every / mark and drop to "+tgt+" WPM — professional speakers are slower than you think."});
+ else N.push({k:"good",h:"Pace in the natural range",b:wpm+" WPM is comfortable. "+(acc>=95?"Raise it by 5–10 WPM next time.":"Hold this speed while you fix accuracy.")});
+ // 3 words
+ if(uniq.length){
+  const top=uniq.filter(e=>!FUNC.has(e.w)).slice(0,6).map(e=>e.w);
+  if(top.length)N.push({k:"",h:"Words to fix: "+top.join(", "),b:"They are saved in Words with spaced reviews. Say each one 3× slowly, then inside its phrase, then in the full sentence."});
+ }
+ // 4 patterns
+ const tot=Object.entries(s.pat||{}).filter(([k])=>k!=="other").sort((a,b)=>b[1]-a[1]).slice(0,2);
+ tot.forEach(([k,v])=>{
+  if(v<2&&uniq.length>3)return;
+  const T=TAGS[k];N.push({k:"warn",h:"Pattern: "+T.n+" ("+v+" words)",b:T.tip,act:{a:"warm",set:T.set,l:"Warm up: "+SETS[T.set]}});
+ });
+ const subs=(s.missed||[]).filter(m=>m.h&&m.h!==norm(m.w)).slice(0,3);
+ if(subs.length)N.push({k:"",h:"What the mic heard instead",b:subs.map(m=>m.w+" → “"+m.h+"”").join(" · ")+". If these look right, listen to the word slowly and copy the mouth shape."});
+ // 5 weak sentence
+ if(weakS){const sn=S.sentences[weakS.si];const txt=S.words.slice(sn.s,sn.e+1).map(w=>w.t).join(" ");
+  N.push({k:"warn",h:"Weakest sentence ("+Math.round(weakS.a*100)+"%)",b:"“"+(txt.length>110?txt.slice(0,107)+"…":txt)+"” — hear it, repeat it twice, then re-read the whole text.",act:{a:"drillSent",si:weakS.si,l:"Drill this sentence"}})}
+ // 6 trend
+ if(prev.length>=3){
+  const a=arr=>arr.reduce((x,y)=>x+y,0)/arr.length,l3=recs.slice(-3),p3=recs.slice(-6,-3);
+  if(p3.length===3){
+   const da=Math.round(a(l3.map(h=>h.acc))-a(p3.map(h=>h.acc))),dw=Math.round(a(l3.map(h=>h.wpm))-a(p3.map(h=>h.wpm)));
+   N.push({k:da>=0?"good":"warn",h:"Trend (last 3 vs previous 3)",b:"Accuracy "+(da>=0?"+":"")+da+" points, speed "+(dw>=0?"+":"")+dw+" WPM."+(da<0?" Take one slower session to rebuild accuracy.":"")});
+  }
+ }
+ // 7 plan
+ const steps=[];const wp=tot[0]?TAGS[tot[0][0]].set:null;
+ if(wp)steps.push("Warm-up: "+SETS[wp]+" twisters (2 min)");
+ if(acc>=95&&wpm>=tgt*0.95){const nx=recommendText();steps.push("Move on: “"+nx.title+"” (Level "+nx.lv+")");steps.push("Read it with Preview → Listen → Pace → Record")}
+ else{steps.push("Listen + Pace this text at "+paceRec+" WPM");steps.push("Record again — target 95% accuracy")}
+ N.push({k:"",h:"Plan for your next session",b:steps.map((x,i)=>(i+1)+") "+x).join("  ·  ")});
+ return N;
+}
+function renderCoach(s,weakS,uniq){
+ const box=$("#coach"),notes=buildCoaching(s,weakS,uniq);box.style.display="block";box.innerHTML="<h2>Coaching notes</h2><div class='meta'>Saved with this session"+(Cloud.on()?" and synced to your sheet.":".")+"</div>";
+ notes.forEach(n=>{
+  const d=document.createElement("div");d.className="note "+n.k;d.innerHTML="<i>"+(n.k==="warn"?"!":n.k==="good"?"✓":"•")+"</i><div><b></b><p></p></div>";
+  d.querySelector("b").textContent=n.h;d.querySelector("p").textContent=n.b;
+  if(n.act){const b=document.createElement("button");b.className="btn small";b.style.marginTop="8px";b.textContent=n.act.l;b.dataset.act=n.act.a;if(n.act.set)b.dataset.set=n.act.set;if(n.act.si!=null)b.dataset.si=n.act.si;d.lastChild.appendChild(b)}
+  box.appendChild(d);
+ });
+ s.notes=notes.slice(0,6).map(n=>(n.h+": "+n.b).slice(0,220));
+ store.set("fr2_hist",S.history);queue("logSessions",{sessions:[s]},true);
+}
+function drillSentence(si){
+ const sn=S.sentences[si];if(!sn)return;
+ setStep("listen");$("#shadowSw").checked=true;listenFrom(sn.s,si);
+ $("#reader").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ============ SESSIONS ============ */
+function logSession(o){
+ const s=Object.assign({id:uid(),ts:Date.now(),tid:S.tid||"",title:S.title,level:S.level||0,wpm:0,acc:null,words:0,secs:0,missed:[],pat:{},notes:[]},o);
+ S.history.push(s);S.history=S.history.slice(-600);store.set("fr2_hist",S.history);
+ if(!(o.mode==="record"&&o.acc!=null))queue("logSessions",{sessions:[s]});
+ renderPlan();return s;
+}
+function streak(){
+ const days=new Set(S.history.map(h=>dayKey(h.ts)));let n=0;const d=new Date();
+ if(!days.has(dayKey(d.getTime())))d.setDate(d.getDate()-1);
+ while(days.has(dayKey(d.getTime()))){n++;d.setDate(d.getDate()-1)}
+ return n;
+}
+function minsToday(){const k=dayKey(Date.now());return S.history.filter(h=>h.mode==="practice"&&dayKey(h.ts)===k).reduce((a,h)=>a+(h.secs||0),0)/60}
+
+/* ============ PLAN CARD ============ */
+function renderPlan(){
+ const box=$("#plan"),wt=weakTags(),top=wt[0]&&wt[0][1]>=2?wt[0][0]:null,due=dueWords().length,rec=recommendText(),m=minsToday(),goal=+S.cfg.goal||15;
+ const stk=streak(),setKey=top?TAGS[top].set:"flow";
+ box.innerHTML="<div class='plan-top'><div class='pstat'><b>"+stk+" day"+(stk===1?"":"s")+"</b><span>Streak</span></div><div class='pstat' data-act='timer' style='cursor:pointer' title='Open the practice timer'><b>"+Math.min(999,Math.round(m))+" / "+goal+" min</b><span>Today</span><div class='gbar'><i style='width:"+Math.min(100,m/goal*100)+"%'></i></div></div><div class='pstat'><b>Level "+rec.lv+"</b><span>"+LEVELS[rec.lv].n+"</span></div></div>"
+ +"<div class='acts'><span class='meta' style='align-self:center'>Today's plan:</span>"
+ +"<button class='btn small' data-act='warm' data-set='"+setKey+"'>1 · Warm-up: "+SETS[setKey]+(top?" ★":"")+"</button>"
+ +(due?"<button class='btn small' data-act='review'>2 · Review "+due+" word"+(due>1?"s":"")+"</button>":"")
+ +"<button class='btn small primary' data-act='open' data-id='"+rec.id+"'>"+(due?3:2)+" · Read: "+esc(rec.t)+"</button><button class='btn small' data-act='timer'>⏱ Timer</button></div>";
+}
+
+/* ============ LIBRARY ============ */
+function renderLib(){
+ const f=$("#libFilters");f.innerHTML="";
+ [["All",0]].concat([1,2,3,4,5,6].map(l=>["L"+l+" "+LEVELS[l].n,l])).forEach(([l,v])=>{const b=document.createElement("button");b.className="chip"+(S.libLv===v?" on":"");b.textContent=l;b.style.cssText=S.libLv===v?"background:var(--accent);color:var(--accent-ink);border-color:var(--accent)":"";b.onclick=()=>{S.libLv=v;renderLib()};f.appendChild(b)});
+ const g=$("#libGrid");g.innerHTML="";const rec=recommendText();
+ PASSAGES.filter(p=>!S.libLv||p.lv===S.libLv).forEach(p=>{
+  const c=document.createElement("div");c.className="card lib";const n=p.x.replace(/[\/*]/g,"").split(/\s+/).filter(Boolean).length;
+  const best=S.history.filter(h=>h.tid===p.id&&h.mode==="record"&&h.acc!=null).reduce((m,h)=>Math.max(m,h.acc),0);
+  c.innerHTML="<div style='display:flex;gap:6px;flex-wrap:wrap'><span class='tag'>L"+p.lv+" · "+LEVELS[p.lv].n+"</span><span class='tag' style='background:var(--bg);color:var(--muted)'>"+esc(p.cat)+"</span>"+(masteredP(p)?"<span class='tag gold'>✓ Mastered</span>":(rec.id===p.id?"<span class='tag gold'>Recommended</span>":""))+"</div><h3>"+esc(p.t)+"</h3><p>"+esc(p.gist)+"</p><div class='ft'><span>"+n+" words · "+p.wpm+" WPM</span><span>"+(best?"Best "+best+"%":"")+"</span></div>";
+  c.onclick=()=>openPassage(p.id);g.appendChild(c);
+ });
+}
+function openPassage(id){const p=PASSAGES.find(x=>x.id===id);if(!p)return;loadText(p.t,p.x,p);go("practice")}
+
+/* ============ WARM-UP ============ */
+function repsToday(id){const r=S.reps[id];return r&&r.d===dayKey(Date.now())?r.c:0}
+function renderWarm(){renderVoice();
+ const chips=$("#setChips");chips.innerHTML="";const wt=weakTags().map(x=>TAGS[x[0]].set);
+ [["all","All"]].concat(Object.entries(SETS)).forEach(([k,l])=>{
+  const b=document.createElement("button");b.className="chip";b.textContent=l+(wt.slice(0,2).includes(k)?" ★":"");
+  if(S.warmSet===k)b.style.cssText="background:var(--accent);color:var(--accent-ink);border-color:var(--accent)";
+  b.onclick=()=>{S.warmSet=k;renderWarm()};chips.appendChild(b);
+ });
+ const list=$("#twList");list.innerHTML="";
+ TWISTERS.filter(t=>S.warmSet==="all"||t.set===S.warmSet).forEach(t=>{
+  const c=document.createElement("div");c.className="card tw";const r=repsToday(t.id);
+  c.innerHTML="<div><span class='tag'>"+SETS[t.set]+"</span> <span class='meta'>"+["","Easy","Medium","Hard"][t.lv]+"</span><span class='reps'>"+[0,1,2].map(i=>"<i class='"+(i<r?"f":"")+"'></i>").join("")+"</span></div><div class='tx'></div><div class='acts' style='margin:0'><button class='btn small' data-hear='0.6'>🔊 Slow</button><button class='btn small' data-hear='0.9'>🔊 Normal</button><button class='btn small' data-hear='1.15'>🔊 Fast</button><button class='btn small primary' data-say='1'>🎤 Say it</button></div><div class='res'></div>";
+  twPlain(c.querySelector(".tx"),t.x);
+  c.querySelectorAll("[data-hear]").forEach(b=>b.onclick=()=>speakText(t.x,+b.dataset.hear));
+  c.querySelector("[data-say]").onclick=()=>sayTwister(t,c);
+  list.appendChild(c);
+ });
+}
+function listenOnce(done){
+ if(!SR){toast("Speech recognition needs Chrome or Edge");return null}
+ const r=new SR();r.lang="en-US";r.interimResults=false;r.continuous=false;r.maxAlternatives=3;let fin=false;
+ const end=a=>{if(fin)return;fin=true;done(a)};
+ r.onresult=e=>{const a=[];for(let i=0;i<e.results[0].length;i++)a.push(e.results[0][i].transcript);end(a)};
+ r.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){toast("Microphone is blocked. Allow mic access and try again.")}end([])};
+ r.onend=()=>end([]);
+ try{r.start()}catch(e){end([])}
+ return r;
+}
+function twPlain(el,text){
+ el.innerHTML="";
+ text.split(/\s+/).forEach(w=>{const sp=document.createElement("span");sp.className="w";sp.textContent=w;el.appendChild(sp);el.appendChild(document.createTextNode(" "))});
+}
+function setTwBtn(card,on){const b=card.querySelector("[data-say]");if(!b)return;b.textContent=on?"■ Stop & score":"🎤 Say it";b.className="btn small "+(on?"rec":"primary")}
+function stopTwister(silent){
+ const T=S.tw;if(!T)return;
+ S.tw=null;clearInterval(T.iv);setTwBtn(T.card,false);
+ const r=T.r;
+ if(silent){if(r){try{r.onend=null;r.onerror=null;r.stop()}catch(e){}}return}
+ T.card.querySelector(".res").textContent="Scoring…";
+ if(r)stopRecognizer(r,()=>scoreTwister(T));else scoreTwister(T);
+}
+function scoreTwister(T){
+ const card=T.card,res=card.querySelector(".res");
+ T.spans.forEach(sp=>sp.classList.remove("active","ok","miss"));res.innerHTML="";
+ const spoken=T.combined.split(/\s+/).map(norm).filter(Boolean);
+ if(!spoken.length){res.textContent="I didn't hear anything — move closer to the mic and try again.";return}
+ const al=align(T.ref,spoken),m=new Set(al.pairs.map(p=>p[0])),acc=Math.round(m.size/T.ref.length*100),entries=[];
+ T.ref.forEach((w,k)=>{const sp=T.spans[T.map[k]];if(m.has(k))sp.classList.add("ok");else{sp.classList.add("miss");entries.push(entryFor(w,al.heard[k]))}});
+ const ok=acc>=90;
+ const b=document.createElement("b");b.style.cssText="font-size:15px;color:"+(ok?"var(--ok)":"var(--warn)");
+ b.textContent=acc+"% — "+(ok?"clean rep ✓":(acc>=70?"close — slower and clearer":"try again, much slower"));res.appendChild(b);
+ const h=document.createElement("div");h.textContent="Heard: “"+T.combined+"”";res.appendChild(h);
+ if(entries.length){
+  const q=document.createElement("div");q.textContent="Missed — tap a word to hear it:";q.style.marginTop="6px";res.appendChild(q);
+  const ch=document.createElement("div");ch.className="chips";
+  entries.forEach(e=>{const c=document.createElement("span");c.className="chip";c.textContent=e.w+(e.h?"  → “"+e.h+"”":"");c.onclick=()=>speakWord(e.w,0.7);ch.appendChild(c)});
+  res.appendChild(ch);
+ }
+ const top=Object.entries(patCount(entries)).filter(([k])=>k!=="other"&&k!=="func").sort((a,b)=>b[1]-a[1])[0];
+ if(top&&TAGS[top[0]]){const tip=document.createElement("div");tip.style.marginTop="8px";tip.textContent="Tip ("+TAGS[top[0]].n+"): "+TAGS[top[0]].tip;res.appendChild(tip)}
+ if(ok){const r=S.reps[T.t.id],dk=dayKey(Date.now());S.reps[T.t.id]={d:dk,c:Math.min(3,(r&&r.d===dk?r.c:0)+1)};store.set("fr2_reps",S.reps);
+  card.querySelectorAll(".reps i").forEach((i,k)=>i.classList.toggle("f",k<S.reps[T.t.id].c))}
+ logSession({mode:"warmup",tid:T.t.id,title:"Warm-up · "+SETS[T.t.set],acc,words:T.ref.length,secs:Math.max(5,Math.round((Date.now()-T.t0)/1000)),missed:entries,pat:patCount(entries)});
+}
+function sayTwister(t,card){
+ if(!SR){toast("Speech recognition needs Chrome or Edge");return}
+ if(S.tw){const same=S.tw.card===card;stopTwister(!same);if(same)return}
+ stopAll();if("speechSynthesis" in window)speechSynthesis.cancel();
+ twPlain(card.querySelector(".tx"),t.x);
+ const ref=[],map=[];t.x.split(/\s+/).forEach((w,i)=>{const n=norm(w);if(n){ref.push(n);map.push(i)}});
+ const T={t,card,ref,map,spans:[...card.querySelectorAll(".tx .w")],carry:"",combined:"",p:0,r:null,t0:Date.now(),last:Date.now(),heard:false,iv:null};
+ S.tw=T;setTwBtn(card,true);
+ const res=card.querySelector(".res");res.textContent="Listening… read the whole line. I'll wait for you, then score it.";
+ const r=new SR();T.r=r;r.lang="en-US";r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+ r.onresult=e=>{
+  let tx="";for(let i=0;i<e.results.length;i++)tx+=e.results[i][0].transcript+" ";
+  T.combined=(T.carry+" "+tx).trim();T.last=Date.now();T.heard=true;
+  const{ok,p}=liveTrack(T.combined.split(/\s+/).map(norm).filter(Boolean),{arr:T.ref,map:T.map}),okSet=new Set(ok);
+  T.p=p;T.spans.forEach((sp,i)=>{sp.classList.toggle("ok",okSet.has(i));sp.classList.remove("active")});
+  if(p<T.ref.length){const cur=T.spans[T.map[p]];if(cur)cur.classList.add("active")}
+  res.textContent="Heard: “"+T.combined.split(/\s+/).slice(-14).join(" ")+"”";
+ };
+ r.onerror=e=>{
+  if(e.error==="not-allowed"||e.error==="service-not-allowed"){toast("Microphone is blocked. Allow mic access and try again.");stopTwister(true);res.textContent="Microphone is blocked."}
+  else if(e.error==="network"){toast("Speech recognition needs an internet connection.");stopTwister(true)}
+ };
+ r.onend=()=>{if(S.tw===T){T.carry=T.combined;try{r.start()}catch(err){}}};
+ try{r.start()}catch(err){}
+ T.iv=setInterval(()=>{
+  if(S.tw!==T)return;const now=Date.now();
+  if(T.heard&&T.p>=T.ref.length&&now-T.last>1300)stopTwister(false);
+  else if(T.heard&&now-T.last>5000)stopTwister(false);
+  else if(!T.heard&&now-T.t0>10000){stopTwister(true);res.textContent="I couldn't hear you — check the microphone and try again."}
+  else if(now-T.t0>40000)stopTwister(false);
+ },400);
+}
+
+/* ============ VOCAB / SPACED REPETITION ============ */
+function addVocab(word,opt){
+ const k=norm(word),now=Date.now(),v=S.vocab[k];
+ if(v){if(opt&&opt.miss){v.n++;v.box=Math.max(0,v.box-1);v.due=now}v.last=now;v.upd=now}
+ else S.vocab[k]={n:opt&&opt.miss?1:0,box:0,due:now,last:now,upd:now,src:S.title};
+ store.set("fr2_vocab",S.vocab);refreshSaved();return Object.assign({w:k},S.vocab[k]);
+}
+function pushWords(list){if(list.length)queue("upsertWords",{words:list})}
+function removeVocab(k){delete S.vocab[k];store.set("fr2_vocab",S.vocab);refreshSaved();queue("deleteWord",{word:k});renderWords()}
+function dueWords(){const now=Date.now();return Object.entries(S.vocab).filter(([,v])=>v.due<=now).sort((a,b)=>b[1].n-a[1].n).map(([w])=>w)}
+function renderWords(){
+ const all=Object.entries(S.vocab),due=dueWords();
+ $("#wTitle").textContent="Tricky words · "+all.length+(due.length?" · "+due.length+" due":"");
+ $("#reviewBtn").disabled=!due.length;
+ const box=$("#wordList");box.innerHTML="";
+ if(!all.length){box.innerHTML="<div class='empty'>No words yet. Words you miss while recording are added automatically.</div>";return}
+ all.sort((a,b)=>b[1].n-a[1].n).forEach(([w,v])=>{
+  const row=document.createElement("div");row.className="row";row.dataset.w=w;
+  row.innerHTML="<div><span style='font-family:Georgia,serif;font-size:20px'></span> <span class='meta'></span></div><div style='display:flex;gap:6px'></div>";
+  row.querySelector("span").textContent=w;
+  row.querySelectorAll("span")[1].textContent="missed "+v.n+"× · box "+(v.box+1)+"/5";
+  const a=row.lastChild;
+  [["🔊",()=>speakWord(w,0.8)],["Slow",()=>speakWord(w,0.5)],["Remove",()=>removeVocab(w)]].forEach(([l,f])=>{const b=document.createElement("button");b.className="btn small";b.textContent=l;b.onclick=f;a.appendChild(b)});
+  box.appendChild(row);
+ });
+}
+function stopDrill(){S.drill.running=false;clearTimeout(S.drill.t);$$("#wordList .row").forEach(r=>r.style.background="");const b=$("#drillBtn");if(b)b.textContent="▶ Listen to all"}
+function drillAll(){
+ if(S.drill.running){stopDrill();return}
+ const list=Object.keys(S.vocab);if(!list.length)return;
+ stopAll();S.drill.running=true;$("#drillBtn").textContent="■ Stop";let i=0;
+ const step=()=>{
+  if(!S.drill.running)return;if(i>=list.length){stopDrill();return}
+  const w=list[i++];$$("#wordList .row").forEach(r=>r.style.background=r.dataset.w===w?"var(--accent-soft)":"");
+  speakWord(w,0.8);S.drill.t=setTimeout(step,2200);
+ };step();
+}
+function startReview(){
+ const q=dueWords().slice(0,15);if(!q.length){toast("Nothing due — nice work.");return}
+ S.rv={q,i:0,got:0};renderReview();
+}
+function renderReview(){
+ const box=$("#reviewBox"),rv=S.rv;box.innerHTML="";if(!rv)return;
+ const d=document.createElement("div");d.className="card rv";d.style.margin="14px 0";
+ if(rv.i>=rv.q.length){d.innerHTML="<h2>Review complete</h2><p class='meta'>You knew "+rv.got+" of "+rv.q.length+". Words you got right come back later; the rest return soon.</p>";
+  const b=document.createElement("button");b.className="btn";b.textContent="Close";b.onclick=()=>{S.rv=null;renderReview();renderWords();renderPlan()};d.appendChild(b);box.appendChild(d);return}
+ const w=rv.q[rv.i];
+ d.innerHTML="<div class='meta'>"+(rv.i+1)+" / "+rv.q.length+"</div><div class='big'></div><div class='acts' style='justify-content:center;margin:0 0 10px'></div><div class='meta' id='rvHeard' style='min-height:20px'></div><div class='acts' style='justify-content:center'></div>";
+ d.querySelector(".big").textContent=w;
+ const a1=d.querySelectorAll(".acts")[0],a2=d.querySelectorAll(".acts")[1];
+ const mk=(p,l,f,c)=>{const b=document.createElement("button");b.className="btn"+(c?" "+c:"");b.textContent=l;b.onclick=f;p.appendChild(b)};
+ mk(a1,"🔊 Hear",()=>speakWord(w,0.75));mk(a1,"Slow",()=>speakWord(w,0.5));
+ mk(a1,"🎤 Say it",()=>{const h=d.querySelector("#rvHeard");h.textContent="Listening…";listenOnce(al=>{if(!al.length){h.textContent="Didn't catch that — try again.";return}const ok=al.some(x=>x.split(/\s+/).map(norm).includes(norm(w)));h.innerHTML="";const b=document.createElement("b");b.style.color=ok?"var(--ok)":"var(--warn)";b.textContent=(ok?"✓ ":"✗ ")+"Heard “"+al[0]+"”";h.appendChild(b)})},"primary");
+ mk(a2,"Again",()=>gradeWord(w,false));mk(a2,"Got it",()=>gradeWord(w,true),"primary");
+ box.appendChild(d);
+}
+function gradeWord(w,ok){
+ const v=S.vocab[w];if(!v)return;const now=Date.now();
+ if(ok){v.box=Math.min(4,v.box+1);v.due=now+INTERVALS[v.box]*86400000;S.rv.got++}else{v.box=0;v.due=now+10*60000}
+ v.last=now;v.upd=now;store.set("fr2_vocab",S.vocab);pushWords([Object.assign({w},v)]);S.rv.i++;renderReview();
+}
+
+/* ============ PROGRESS ============ */
+function chartSvg(data){
+ if(data.length<2)return"<div class='empty'>Complete at least two scored reads to see your trend.</div>";
+ const W=640,H=190,P=28,n=data.length,mx=Math.max(200,...data.map(d=>d.wpm));
+ const x=i=>P+i*(W-2*P)/(n-1),yw=v=>H-P-(v/mx)*(H-2*P),ya=v=>H-P-(v/100)*(H-2*P);
+ const pw=data.map((d,i)=>x(i)+","+yw(d.wpm)).join(" "),pa=data.map((d,i)=>x(i)+","+ya(d.acc)).join(" ");
+ let g="";[0,.5,1].forEach(f=>{const y=H-P-f*(H-2*P);g+="<line x1='"+P+"' x2='"+(W-P)+"' y1='"+y+"' y2='"+y+"'/>"});
+ return"<svg viewBox='0 0 "+W+" "+H+"' class='chart'><g style='stroke:var(--line);stroke-width:1'>"+g+"</g><polyline points='"+pw+"' style='fill:none;stroke:var(--accent);stroke-width:2.5'/><polyline points='"+pa+"' style='fill:none;stroke:#f59e0b;stroke-width:2.5;stroke-dasharray:5 4'/>"
+ +data.map((d,i)=>"<circle cx='"+x(i)+"' cy='"+yw(d.wpm)+"' r='3.5' style='fill:var(--accent)'/>").join("")+"<text x='4' y='"+(P+4)+"' style='fill:var(--muted);font-size:11px'>"+mx+"</text><text x='4' y='"+(H-P+4)+"' style='fill:var(--muted);font-size:11px'>0</text></svg>";
+}
+function renderProgress(){
+ const h=S.history,rec=h.filter(x=>x.mode==="record"&&x.acc!=null);
+ const best=rec.reduce((m,x)=>Math.max(m,x.wpm||0),0);
+ const avg=rec.length?Math.round(rec.slice(-10).reduce((a,x)=>a+x.acc,0)/Math.min(10,rec.length))+"%":"–";
+ const mins=Math.round(practiceSessions().reduce((a,x)=>a+(x.secs||0),0)/60);
+ const st=$("#pStats");st.innerHTML="";
+ st.appendChild(statGrid([[streak(),"Day streak"],[rec.length,"Scored reads"],[best||"–","Best WPM"],[avg,"Avg accuracy (last 10)"],[mins,"Practice minutes"]]));
+ $("#pChart").innerHTML=chartSvg(rec.slice(-20));
+ const w=weakTags(15),mx=Math.max(1,...w.map(x=>x[1])),sb=$("#pSounds");sb.innerHTML="";
+ if(!w.length)sb.innerHTML="<div class='empty'>Record a read or do a warm-up to see your profile.</div>";
+ w.slice(0,6).forEach(([k,v])=>{const d=document.createElement("div");d.className="hbar";d.innerHTML="<span>"+esc(TAGS[k].n)+"</span><div><i style='width:"+(v/mx*100)+"%'></i></div><em>"+v+"</em>";sb.appendChild(d)});
+ const lb=$("#pLevels");lb.innerHTML="";
+ [1,2,3,4,5,6].forEach(l=>{const ps=PASSAGES.filter(p=>p.lv===l),d=ps.filter(masteredP).length,dv=document.createElement("div");dv.className="hbar";dv.innerHTML="<span>L"+l+" "+LEVELS[l].n+"</span><div><i style='width:"+(d/ps.length*100)+"%'></i></div><em>"+d+"/"+ps.length+"</em>";lb.appendChild(dv)});
+ const t=$("#pTable");
+ if(!h.length){t.innerHTML="<div class='empty'>No sessions yet.</div>";return}
+ let html="<table><tr><th>Date</th><th>Text</th><th>Mode</th><th>WPM</th><th>Acc.</th></tr>";
+ h.slice(-15).reverse().forEach(x=>{html+="<tr><td>"+new Date(x.ts).toLocaleDateString(undefined,{month:"short",day:"numeric"})+"</td><td>"+esc(x.title)+"</td><td>"+x.mode+"</td><td>"+(x.wpm||"–")+"</td><td>"+(x.acc!=null?x.acc+"%":"–")+"</td></tr>"});
+ t.innerHTML=html+"</table>";
+}
+function exportCsv(){
+ const rows=[["date","title","mode","wpm","accuracy","words","secs","missed"]].concat(S.history.map(h=>[new Date(h.ts).toISOString(),h.title,h.mode,h.wpm,h.acc==null?"":h.acc,h.words,h.secs,(h.missed||[]).map(m=>m.w).join(" ")]));
+ const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="fluent-reader-sessions.csv";a.click();
+}
+
+/* ============ CLOUD (Google Sheets) — URL/token come from DEFAULT_CLOUD at the top ============ */
+const Cloud={
+ url(){return(DEFAULT_CLOUD.url||"").trim()},tok(){return(DEFAULT_CLOUD.token||"").trim()},on(){return!!this.url()},
+ async call(action,payload){
+  const r=await fetch(this.url(),{method:"POST",redirect:"follow",body:JSON.stringify(Object.assign({action,token:this.tok()},payload||{}))});
+  const j=await r.json();if(!j.ok)throw new Error(j.error||"error");return j;
+ }
+};
+function setSync(state,txt){const p=$("#syncPill");p.className="pill "+state;$("#syncTxt").textContent=txt}
+function queue(action,payload,replace){
+ if(!Cloud.on())return;
+ if(replace&&action==="logSessions"){const id=payload.sessions[0].id;S.outbox=S.outbox.filter(o=>!(o.a==="logSessions"&&o.p.sessions[0].id===id))}
+ S.outbox.push({a:action,p:payload});store.set("fr2_outbox",S.outbox);clearTimeout(queue.t);queue.t=setTimeout(flush,900);
+}
+async function flush(){
+ if(!Cloud.on()||S.flushing)return;
+ S.flushing=true;setSync("sync","Syncing…");
+ try{while(S.outbox.length){const it=S.outbox[0];await Cloud.call(it.a,it.p);S.outbox.shift();store.set("fr2_outbox",S.outbox)}
+  setSync("ok","Synced "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}))}
+ catch(e){setSync("off","Offline — will retry")}
+ S.flushing=false;
+}
+async function pull(){
+ if(!Cloud.on())return;
+ setSync("sync","Syncing…");
+ try{
+  await flush();
+  const j=await Cloud.call("sync"),have=new Set(S.history.map(h=>h.id));
+  j.sessions.forEach(c=>{if(!have.has(c.id))S.history.push(c)});
+  S.history.sort((a,b)=>a.ts-b.ts);S.history=S.history.slice(-600);store.set("fr2_hist",S.history);
+  const cIds=new Set(j.sessions.map(c=>c.id)),miss=S.history.filter(h=>!cIds.has(h.id));
+  for(let i=0;i<miss.length;i+=20)await Cloud.call("logSessions",{sessions:miss.slice(i,i+20)});
+  const cm={};j.words.forEach(c=>{const k=c.w.toLowerCase();cm[k]=c;const l=S.vocab[k];if(!l||c.upd>l.upd)S.vocab[k]={n:c.n,box:c.box,due:c.due,last:c.last,upd:c.upd,src:c.src}});
+  const wp=[];Object.entries(S.vocab).forEach(([w,v])=>{const c=cm[w];if(!c||v.upd>c.upd)wp.push(Object.assign({w},v))});
+  if(wp.length)await Cloud.call("upsertWords",{words:wp});
+  store.set("fr2_vocab",S.vocab);refreshSaved();renderPlan();
+  setSync("ok","Synced "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}));
+  return true;
+ }catch(e){setSync("off","Offline — will retry");return false}
+}
+
+/* ============ VOICE WARM-UP ============ */
+const VW={i:-1,left:0,iv:null};
+function renderVoice(){
+ const box=$("#vwList");if(!box)return;box.innerHTML="";
+ VOICE.forEach((v,i)=>{
+  const d=document.createElement("div");d.className="row vw"+(VW.i===i?" on":"")+(VW.i>i?" done":"");
+  d.innerHTML="<div><b></b><span class='meta'></span></div><div class='meta' style='font-weight:600;white-space:nowrap'></div>";
+  d.querySelector("b").textContent=(i+1)+". "+v.n;d.querySelector("span").textContent=v.h;
+  d.lastChild.textContent=VW.i===i?VW.left+"s":v.d+"s";box.appendChild(d);
+ });
+ $("#vwBtn").textContent=VW.iv?"■ Stop routine":"▶ Start guided routine";
+}
+function stopVoice(){if(!VW.iv&&VW.i===-1)return;clearInterval(VW.iv);VW.iv=null;VW.i=-1;renderVoice()}
+$("#vwBtn").onclick=()=>{
+ if(VW.iv){stopVoice();return}
+ stopAll();VW.i=0;VW.left=VOICE[0].d;renderVoice();
+ VW.iv=setInterval(()=>{
+  VW.left--;
+  if(VW.left<=0){
+   VW.i++;
+   if(VW.i>=VOICE.length){clearInterval(VW.iv);VW.iv=null;VW.i=-1;renderVoice();beep(3);toast("Warm-up complete — now read aloud!");return}
+   VW.left=VOICE[VW.i].d;beep(1);
+  }
+  renderVoice();
+ },1000);
+};
+
+/* ============ PRACTICE TIMER ============ */
+const TM={st:Object.assign({run:false,start:0,acc:0,target:15},store.get("fr2_timer",{})),fired:false};
+const tmSave=()=>store.set("fr2_timer",TM.st);
+const tmElapsed=()=>TM.st.acc+(TM.st.run?Date.now()-TM.st.start:0);
+function beep(n){
+ try{
+  const c=new (window.AudioContext||window.webkitAudioContext)();
+  for(let k=0;k<(n||3);k++){const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+k*.28;
+   o.frequency.value=880;o.connect(g);g.connect(c.destination);
+   g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.22);o.start(t);o.stop(t+.24)}
+  if((n||3)>1&&navigator.vibrate)navigator.vibrate([200,100,200]);
+ }catch(e){}
+}
+function fmtClock(s){s=Math.max(0,Math.floor(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?h+":"+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0"):m+":"+String(x).padStart(2,"0")}
+function fmtDur(sec){if(sec<60)return Math.round(sec)+" s";const m=Math.round(sec/60);return m>=60?Math.floor(m/60)+"h "+String(m%60).padStart(2,"0")+"m":m+" min"}
+function practiceSessions(){return S.history.filter(h=>h.mode==="practice")}
+function dayTotals(n){
+ const out=[],now=new Date();now.setHours(12,0,0,0);
+ for(let i=n-1;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);out.push({ts:d.getTime(),k:dayKey(d.getTime()),secs:0,n:0})}
+ const by={};out.forEach(o=>by[o.k]=o);
+ practiceSessions().forEach(h=>{const o=by[dayKey(h.ts)];if(o){o.secs+=h.secs||0;o.n++}});
+ return out;
+}
+function tmTick(){
+ const st=TM.st,el=tmElapsed(),tgt=st.target*60000,count=st.target>0,active=st.run||st.acc>0;
+ const txt=count?fmtClock(Math.ceil(Math.max(0,tgt-el)/1000)):fmtClock(el/1000);
+ const big=$("#tmBig");if(big)big.textContent=txt;
+ const bar=$("#tmBar");if(bar)bar.style.width=(count?Math.min(100,el/tgt*100):0)+"%";
+ const sb=$("#tmStartBtn");if(sb)sb.textContent=st.run?"❚❚ Pause":(st.acc>0?"▶ Resume":"▶ Start");
+ const fb=$("#tmFinishBtn");if(fb)fb.disabled=!active;
+ const rb=$("#tmResetBtn");if(rb)rb.disabled=!active;
+ $("#timerPill").style.display=active?"":"none";$("#timerPillTxt").textContent=(st.run?"":"⏸ ")+txt;
+ document.title=st.run?txt+" · Fluent Reader":"Fluent Reader";
+ if(count&&st.run&&el>=tgt&&!TM.fired){TM.fired=true;tmFinish(true)}
+}
+function tmStart(){
+ if(TM.st.run)return;
+ TM.st.run=true;TM.st.start=Date.now();TM.fired=false;tmSave();tmTick();
+}
+function tmPause(){if(!TM.st.run)return;TM.st.acc+=Date.now()-TM.st.start;TM.st.run=false;tmSave();tmTick()}
+function tmFinish(auto){
+ let secs=Math.round(tmElapsed()/1000);const tg=TM.st.target*60;
+ if(auto&&tg)secs=tg;
+ TM.st.run=false;TM.st.acc=0;TM.st.start=0;tmSave();
+ if(secs>=10){
+  logSession({mode:"practice",tid:"",title:"Practice timer",level:0,secs});
+  const today=Math.round(minsToday());
+  if(auto){beep(3);toast("⏱ Time's up! "+fmtDur(secs)+" logged · today "+today+" min")}
+  else toast(fmtDur(secs)+" logged · today "+today+" min");
+ }else toast("Under 10 seconds — not logged.");
+ tmTick();if($("#v-time").classList.contains("on"))renderTime();
+}
+function renderTime(){
+ const ch=$("#tmChips");ch.innerHTML="";
+ [5,10,15,20,30,45,60,0].forEach(m=>{
+  const b=document.createElement("button");b.className="chip";b.textContent=m?m+" min":"Free (count up)";
+  if(TM.st.target===m)b.style.cssText="background:var(--accent);color:var(--accent-ink);border-color:var(--accent)";
+  b.onclick=()=>{TM.st.target=m;tmSave();renderTime();tmTick()};ch.appendChild(b);
+ });
+ $$("#tmRange button").forEach(b=>b.classList.toggle("on",+b.dataset.r===S.tmRange));
+ const now=Date.now(),goal=+S.cfg.goal||15,ps=practiceSessions(),k=dayKey(now),dn=new Date(now);
+ const sum=a=>a.reduce((x,h)=>x+(h.secs||0),0);
+ const today=ps.filter(h=>dayKey(h.ts)===k),d7=dayTotals(7),d30=dayTotals(30),act=d30.filter(x=>x.secs>0).length;
+ const month=ps.filter(h=>{const q=new Date(h.ts);return q.getFullYear()===dn.getFullYear()&&q.getMonth()===dn.getMonth()});
+ const tSecs=sum(today);
+ $("#tmGoal").innerHTML="Today: <b>"+fmtDur(tSecs)+"</b> of your "+goal+" min goal"+(tSecs/60>=goal?" — goal reached ✓":"")+"<div class='gbar'><i style='width:"+Math.min(100,tSecs/60/goal*100)+"%'></i></div>";
+ const box=$("#tmStats");box.innerHTML="";
+ box.appendChild(statGrid([[fmtDur(tSecs),"Today"],[today.length,"Sessions today"],[fmtDur(d7.reduce((a,x)=>a+x.secs,0)),"Last 7 days"],[fmtDur(sum(month)),"This month"],[act?fmtDur(d30.reduce((a,x)=>a+x.secs,0)/act):"–","Avg per active day (30d)"],[fmtDur(sum(ps)),"All time"]]));
+ // chart
+ const days=dayTotals(S.tmRange),mx=Math.max(goal,10,...days.map(d=>d.secs/60)),H=118;
+ let html="<div class='dbars'><div class='dgoal' style='bottom:"+(18+Math.round(goal/mx*H))+"px' title='Daily goal'></div>";
+ days.forEach((d,i)=>{
+  const mn=d.secs/60,hp=Math.max(2,Math.round(mn/mx*H)),dt=new Date(d.ts);
+  const lab=S.tmRange===30?((i%3===0||i===days.length-1)?dt.getDate():""):(S.tmRange===14?dt.getDate():dt.toLocaleDateString(undefined,{weekday:"short"}));
+  html+="<div class='dbar'><em>"+(S.tmRange===30?"":(mn>=1?Math.round(mn):""))+"</em><i class='"+(mn<=0?"zero":(mn>=goal?"hit":""))+"' style='height:"+hp+"px'></i><span>"+lab+"</span></div>";
+ });
+ $("#tmChart").innerHTML=html+"</div>";
+ // today list
+ const tl=$("#tmToday");tl.innerHTML="";
+ if(!today.length)tl.innerHTML="<div class='empty'>No sessions logged today yet.</div>";
+ else today.slice().reverse().forEach(h=>{const r=document.createElement("div");r.className="row";r.innerHTML="<span></span><b></b>";r.firstChild.textContent=new Date(h.ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" · "+(h.title||"Practice");r.lastChild.textContent=fmtDur(h.secs);tl.appendChild(r)});
+ // last 7 days
+ const td=$("#tmDays");td.innerHTML="";
+ d7.slice().reverse().forEach(d=>{
+  const r=document.createElement("div");r.className="row";r.innerHTML="<span></span><span class='meta'></span>";
+  r.firstChild.textContent=new Date(d.ts).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  r.lastChild.textContent=(d.secs?fmtDur(d.secs):"–")+(d.n?" · "+d.n+" session"+(d.n>1?"s":""):"")+(d.secs/60>=goal?" ✓":"");td.appendChild(r);
+ });
+}
+$("#tmStartBtn").onclick=()=>TM.st.run?tmPause():tmStart();
+$("#tmFinishBtn").onclick=()=>tmFinish(false);
+$("#tmResetBtn").onclick=()=>{if(confirm("Discard this timer without logging it?")){TM.st.run=false;TM.st.acc=0;TM.st.start=0;tmSave();tmTick()}};
+$("#tmSetBtn").onclick=()=>{const v=Math.round(+$("#tmCustom").value);if(!(v>=1&&v<=600)){toast("Enter minutes between 1 and 600.");return}TM.st.target=v;tmSave();$("#tmCustom").value="";renderTime();tmTick()};
+$("#tmManualBtn").onclick=()=>{const v=Math.round(+$("#tmManual").value);if(!(v>=1&&v<=600)){toast("Enter minutes between 1 and 600.");return}logSession({mode:"practice",tid:"",title:"Practice (added manually)",level:0,secs:v*60});$("#tmManual").value="";toast(v+" min added to today");renderTime()};
+$("#tmRange").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.tmRange=+b.dataset.r;renderTime()});
+$("#timerPill").onclick=()=>go("time");
+document.addEventListener("visibilitychange",tmTick);
+
+/* ============ NAV ============ */
+function go(v){
+ stopAll();
+ $$("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+ $$(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));
+ if(v==="words")renderWords();if(v==="progress")renderProgress();if(v==="warm")renderWarm();if(v==="library")renderLib();if(v==="practice")renderPlan();if(v==="time")renderTime();
+ if(v==="settings"){$("#cfgGoal").value=S.cfg.goal}
+ window.scrollTo({top:0});
+}
+
+/* ============ POPOVER ============ */
+const pop=$("#pop");
+function openPop(idx,el){
+ S.popIdx=idx;const w=clean(S.words[idx].t);$("#popWord").textContent=w;$("#popDefBox").textContent="";
+ $("#popSave").textContent=S.vocab[norm(w)]?"✓ Saved":"＋ Save";pop.classList.add("on");
+ const r=el.getBoundingClientRect(),pw=pop.offsetWidth,ph=pop.offsetHeight;
+ pop.style.left=Math.min(Math.max(12,r.left),window.innerWidth-pw-12)+"px";
+ let top=r.bottom+8;if(top+ph>window.innerHeight-12)top=Math.max(12,r.top-ph-8);pop.style.top=top+"px";
+ speakWord(w,0.8);
+}
+async function define(word){
+ const box=$("#popDefBox");box.textContent="Looking up…";
+ try{
+  const r=await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/"+encodeURIComponent(word.toLowerCase()));if(!r.ok)throw 0;
+  const e=(await r.json())[0],ph=e.phonetic||((e.phonetics||[]).find(p=>p.text)||{}).text||"",m=e.meanings[0];
+  box.textContent=(ph?ph+"  ·  ":"")+m.partOfSpeech+" — "+m.definitions[0].definition;
+ }catch(err){box.textContent="No definition found (or you're offline)."}
+}
+
+/* ============ EVENTS ============ */
+$("#nav").addEventListener("click",e=>{const b=e.target.closest("button");if(b)go(b.dataset.view)});
+$("#themeBtn").onclick=()=>{S.theme=S.theme==="night"?"morning":"night";store.set("fr2_theme",S.theme);applyTheme()};
+$("#steps").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setStep(b.dataset.step)});
+$("#nextStep").onclick=()=>{const i=STEPS.findIndex(s=>s.k===S.step);if(i<STEPS.length-1)setStep(STEPS[i+1].k)};
+$("#briefBtn").onclick=()=>$("#brief").classList.toggle("on");
+$("#marksSw").onchange=e=>{document.body.classList.toggle("marks",e.target.checked);store.set("fr2_marks",e.target.checked)};
+$("#fontBtn").onclick=()=>{const r=$("#reader");r.classList.toggle("sans");store.set("fr2_sans",r.classList.contains("sans"))};
+$("#fPlus").onclick=()=>{const v=Math.min(46,parseInt(getComputedStyle(document.documentElement).getPropertyValue("--fs"))+2);document.documentElement.style.setProperty("--fs",v+"px");store.set("fr2_fs",v)};
+$("#fMinus").onclick=()=>{const v=Math.max(16,parseInt(getComputedStyle(document.documentElement).getPropertyValue("--fs"))-2);document.documentElement.style.setProperty("--fs",v+"px");store.set("fr2_fs",v)};
+$("#paceBtn").onclick=()=>S.pace.running?pacePause():paceStart();
+$("#paceReset").onclick=()=>{pacePause();S.pace.i=0;S.pace.acc=0;S.pace.passes=0;clearMarks();$("#barFill").style.width="0";paceUI()};
+$("#wpm").oninput=e=>{S.wpm=+e.target.value;$("#wpmO").textContent=S.wpm+" WPM";meta();store.set("fr2_wpm",S.wpm)};
+$("#chunkSel").onchange=e=>{
+ S.chunk=+e.target.value;const was=S.pace.running;pacePause();
+ const ci=Math.max(0,S.pace.i-1),pos=S.chunks[ci]?S.chunks[ci].s:0;buildChunks();
+ S.pace.i=Math.max(0,S.chunks.findIndex(c=>c.e>=pos));if(was)paceStart();
+};
+$("#listenBtn").onclick=()=>S.listening?stopListen():listenFrom(0);
+$("#voiceSel").onchange=e=>store.set("fr2_voice",e.target.value);
+$("#rate").oninput=e=>$("#rateO").textContent=(+e.target.value).toFixed(2)+"×";
+$("#recBtn").onclick=()=>S.recording?stopRecord():startRecord();
+$("#reader").addEventListener("click",e=>{const sp=e.target.closest(".w");if(!sp)return;e.stopPropagation();openPop(+sp.dataset.i,sp)});
+document.addEventListener("click",e=>{
+ if(!pop.contains(e.target))pop.classList.remove("on");
+ const a=e.target.closest("[data-act]");if(!a)return;
+ const act=a.dataset.act;
+ if(act==="warm"){S.warmSet=a.dataset.set||"all";go("warm")}
+ else if(act==="review"){go("words");startReview()}
+ else if(act==="open")openPassage(a.dataset.id);
+ else if(act==="timer")go("time");
+ else if(act==="drillSent")drillSentence(+a.dataset.si);
+});
+window.addEventListener("scroll",()=>pop.classList.remove("on"),{passive:true});
+$("#popHear").onclick=()=>speakWord($("#popWord").textContent,0.8);
+$("#popSlow").onclick=()=>speakWord($("#popWord").textContent,0.5);
+$("#popDef").onclick=()=>define($("#popWord").textContent);
+$("#popSave").onclick=()=>{
+ const w=$("#popWord").textContent;
+ if(S.vocab[norm(w)]){removeVocab(norm(w));$("#popSave").textContent="＋ Save"}
+ else{pushWords([addVocab(w)]);$("#popSave").textContent="✓ Saved"}
+};
+$("#popFrom").onclick=()=>{const i=S.popIdx;pop.classList.remove("on");setStep("listen");listenFrom(i)};
+$("#ownGo").onclick=()=>{
+ const t=$("#ownText").value.trim();
+ if(t.split(/\s+/).length<8){toast("Please paste a longer text (a couple of sentences at least).");return}
+ loadText($("#ownTitle").value.trim()||"My text",t,null);go("practice");
+};
+$("#addWordBtn").onclick=()=>{const w=$("#addWord").value.trim();if(!w||/\s/.test(w)){toast("Add one word at a time.");return}pushWords([addVocab(w)]);$("#addWord").value="";renderWords()};
+$("#addWord").addEventListener("keydown",e=>{if(e.key==="Enter")$("#addWordBtn").click()});
+$("#reviewBtn").onclick=startReview;
+$("#drillBtn").onclick=drillAll;
+$("#clearHist").onclick=()=>{if(confirm("Clear local practice history? (Your Google Sheet is not touched.)")){S.history=[];store.set("fr2_hist",[]);renderProgress();renderPlan()}};
+$("#expCsv").onclick=exportCsv;
+$("#cfgGoal").onchange=e=>{S.cfg.goal=Math.min(120,Math.max(5,+e.target.value||15));e.target.value=S.cfg.goal;store.set("fr2_cfg",S.cfg);renderPlan()};
+$("#syncPill").onclick=async()=>{
+ if(!Cloud.on()){toast("Cloud sync is off. Add your Apps Script URL in DEFAULT_CLOUD inside the code.");return}
+ const ok=await pull();toast(ok?"Synced ✓":"Sync failed — check your connection.");
+};
+$("#resetAll").onclick=()=>{if(confirm("Delete ALL local data (history, words, settings)?")){["fr2_hist","fr2_vocab","fr2_outbox","fr2_reps","fr2_cfg","fr2_last"].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});location.reload()}};
+document.addEventListener("keydown",e=>{
+ if(e.code!=="Space"||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement.tagName)||!$("#v-practice").classList.contains("on"))return;
+ e.preventDefault();
+ if(S.mode==="pace")S.pace.running?pacePause():paceStart();
+ else if(S.mode==="listen")S.listening?stopListen():listenFrom(0);
+ else if(S.mode==="record")S.recording?stopRecord():startRecord();
+});
+if("speechSynthesis" in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
+
+/* ============ INIT ============ */
+(function init(){
+ applyTheme();
+ const fs=store.get("fr2_fs",0);if(fs)document.documentElement.style.setProperty("--fs",fs+"px");
+ const mk=store.get("fr2_marks",true);$("#marksSw").checked=mk;document.body.classList.toggle("marks",mk);
+ if(store.get("fr2_sans",false))$("#reader").classList.add("sans");
+ $("#wpm").value=S.wpm;$("#wpmO").textContent=S.wpm+" WPM";
+ renderLib();
+ const last=store.get("fr2_last",null);
+ if(last&&last.text){const p=last.tid?PASSAGES.find(x=>x.id===last.tid):null;loadText(last.title,p?p.x:last.text,p||null)}
+ else{const p=recommendText();loadText(p.t,p.x,p)}
+ renderPlan();
+ if(TM.st.run&&tmElapsed()>8*3600000){TM.st={run:false,start:0,acc:0,target:TM.st.target||15};tmSave();toast("An old timer was discarded.")}
+ tmTick();setInterval(tmTick,500);
+ if(Cloud.on()){setSync("sync","Syncing…");pull()}
+})();
+})();
+</script>
+</body>
+</html>
